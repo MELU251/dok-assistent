@@ -150,58 +150,91 @@ pytest tests/test_connection.py -v -s     # Live-Verbindungstest
     └── test_pipeline.py
 ```
 
-## Deployment auf VPS (Docker)
+## Deployment via Hostinger
 
-Voraussetzung: Docker + Docker Compose auf dem VPS, Tailscale aktiv.
-Ollama läuft bereits als separater Stack – kein gemeinsames Compose-File nötig.
+Hostinger liest `docker-compose.yml` direkt aus GitHub und deployt automatisch.
+Secrets kommen **nicht** aus einer `.env`-Datei – sie werden in Hostinger als
+Environment Variables eingetragen und zur Laufzeit injiziert.
 
-### Erstes Deployment
-
-```bash
-# Code auf VPS bringen (eine der beiden Optionen):
-git clone <repo-url> dok-assistent && cd dok-assistent
-# oder: scp -r . user@vps:~/dok-assistent && ssh user@vps "cd dok-assistent"
-
-# .env befüllen
-cp .env.example .env
-nano .env   # Alle Felder ausfüllen, besonders:
-            # CHAINLIT_AUTH_SECRET=$(python -c "import secrets; print(secrets.token_hex(32))")
-            # CHAINLIT_USER=pilot
-            # CHAINLIT_PASSWORD=<sicheres-passwort>
-
-# Deployen
-chmod +x deploy.sh && ./deploy.sh
-```
-
-### Dokument hochladen und indexieren
+### Schritt 1: GitHub Repository
 
 ```bash
-# 1. Datei in das persistente Volume kopieren
-docker cp dokument.pdf dok-assistent:/app/docs/
-
-# 2. Indexieren (startet einmalig, beendet sich danach)
-docker compose --profile tools run --rm ingest --file /app/docs/dokument.pdf
+# Privates Repository auf github.com anlegen, dann:
+git init
+git remote add origin git@github.com:USERNAME/dok-assistent.git
+git add .
+git commit -m "Initial commit"
+git push -u origin main
 ```
 
-### Update deployen (nach Code-Änderung)
+> `.env` wird **niemals** committet – steht in `.gitignore`.
+
+### Schritt 2: Hostinger Setup
+
+1. **VPS Panel** → Docker → "New Stack" (oder "Deploy from GitHub")
+2. GitHub-Repository verknuepfen oder URL der `docker-compose.yml` eingeben:
+   ```
+   https://raw.githubusercontent.com/USERNAME/dok-assistent/main/docker-compose.yml
+   ```
+3. **Environment Variables** eintragen – alle Werte aus `.env.example`:
+
+| Variable | Wert / Quelle |
+|---|---|
+| `ANTHROPIC_API_KEY` | console.anthropic.com → API Keys |
+| `OLLAMA_BASE_URL` | `http://100.103.54.4:32768` |
+| `OLLAMA_EMBED_MODEL` | `nomic-embed-text` |
+| `SUPABASE_URL` | Supabase Dashboard → Settings → API |
+| `SUPABASE_SERVICE_KEY` | Supabase Dashboard → API → service_role |
+| `CHAINLIT_AUTH_SECRET` | `python -c "import secrets; print(secrets.token_hex(32))"` |
+| `CHAINLIT_USER` | z. B. `pilot` |
+| `CHAINLIT_PASSWORD` | sicheres Passwort waehlen |
+| `CHUNK_SIZE` | `500` |
+| `CHUNK_OVERLAP` | `50` |
+| `TOP_K_RESULTS` | `4` |
+| `LOG_LEVEL` | `INFO` |
+
+### Schritt 3: Tailscale
 
 ```bash
-git pull
-docker compose build && docker compose up -d chainlit
+# Tailscale-IP des VPS pruefen (auf VPS ausfuehren):
+tailscale ip -4
+# => 100.103.54.4
+
+# App ist erreichbar unter:
+# http://100.103.54.4:8000
 ```
 
-### Logs prüfen
+Pilot-Kunde benoetigt: **Tailscale-Client** installiert + Einladung angenommen.
+
+### Dokument hochladen (nach Deployment)
+
+Direkt im Chainlit-Chat ueber den **"Dokument hochladen"**-Button –
+kein SSH, kein `docker cp` noetig.
+
+### Update deployen (nach Code-Aenderung)
 
 ```bash
-docker compose logs -f chainlit
+git push
+# Hostinger erkennt Aenderung automatisch via Webhook
+# oder: Hostinger Panel → Stack → "Redeploy" klicken
 ```
 
-### Pilot-Kunden onboarden
+### Logs pruefen
 
-1. **Tailscale**: Admin-Console → Geräte → Einladen → E-Mail des Kunden
-2. **Link senden**: `http://100.103.54.4:8000`
-3. **Zugangsdaten**: `CHAINLIT_USER` / `CHAINLIT_PASSWORD` aus `.env`
-4. Kunde braucht: Tailscale-Client installiert + eingeloggt
+```bash
+# Option 1: Hostinger VPS Panel → Container Logs
+# Option 2: per SSH
+ssh root@100.103.54.4
+docker logs -f dok-assistent
+```
+
+### Manuelles CLI-Ingesting (Fallback via SSH)
+
+```bash
+ssh root@100.103.54.4
+cd ~/dok-assistent
+docker compose --profile tools run --rm ingest --file /app/docs/datei.pdf
+```
 
 ---
 

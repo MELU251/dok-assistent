@@ -1,8 +1,11 @@
 services:
 
   # ---------------------------------------------------------------
-  # Chainlit Chat-UI – läuft dauerhaft
+  # Chainlit Chat-UI – laeuft dauerhaft
   # Zugriff: http://100.103.54.4:8000 (nur via Tailscale)
+  #
+  # Secrets kommen NICHT aus .env – Hostinger injiziert sie direkt
+  # als Environment-Variablen zur Laufzeit.
   # ---------------------------------------------------------------
   chainlit:
     build: .
@@ -10,15 +13,32 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
-    env_file:
-      - .env
+    environment:
+      # Anthropic – LLM fuer Antwortgenerierung
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # Ollama – selbst gehostete Embeddings (separater Container auf Port 32768)
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+      - OLLAMA_EMBED_MODEL=${OLLAMA_EMBED_MODEL}
+      # Supabase – Vektordatenbank
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      # RAG-Parameter
+      - CHUNK_SIZE=${CHUNK_SIZE}
+      - CHUNK_OVERLAP=${CHUNK_OVERLAP}
+      - TOP_K_RESULTS=${TOP_K_RESULTS}
+      - LOG_LEVEL=${LOG_LEVEL}
+      # Chainlit-Authentifizierung
+      - CHAINLIT_AUTH_SECRET=${CHAINLIT_AUTH_SECRET}
+      - CHAINLIT_USER=${CHAINLIT_USER}
+      - CHAINLIT_PASSWORD=${CHAINLIT_PASSWORD}
     volumes:
-      # Persistentes Volume für hochgeladene Dokumente
+      # Persistentes Volume fuer hochgeladene Dokumente
       - docs_data:/app/docs
       # Chainlit-Konfiguration aus dem Repo mounten
       - ./chainlit.toml:/app/.chainlit/config.toml:ro
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      # Chainlit stellt /health bereit (gibt {"status":"ok"} zurueck)
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -27,23 +47,33 @@ services:
   # ---------------------------------------------------------------
   # Ingest-Tool – nur bei Bedarf starten
   #
-  # Verwendung:
-  #   docker cp dokument.pdf dok-assistent:/app/docs/
-  #   docker compose --profile tools run --rm ingest --file /app/docs/dokument.pdf
+  # Verwendung (auf VPS per SSH):
+  #   docker compose --profile tools run --rm ingest --file /app/docs/datei.pdf
+  #
+  # Oder Datei zuerst hochladen via Chainlit-Upload-Button
   # ---------------------------------------------------------------
   ingest:
     build: .
     restart: "no"
     profiles:
       - tools
-    env_file:
-      - .env
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+      - OLLAMA_EMBED_MODEL=${OLLAMA_EMBED_MODEL}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - CHUNK_SIZE=${CHUNK_SIZE}
+      - CHUNK_OVERLAP=${CHUNK_OVERLAP}
+      - TOP_K_RESULTS=${TOP_K_RESULTS}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - CHAINLIT_AUTH_SECRET=${CHAINLIT_AUTH_SECRET}
+      - CHAINLIT_USER=${CHAINLIT_USER}
+      - CHAINLIT_PASSWORD=${CHAINLIT_PASSWORD}
     volumes:
       - docs_data:/app/docs
       - ./chainlit.toml:/app/.chainlit/config.toml:ro
     entrypoint: ["python", "ingest_cli.py"]
-    # Argumente werden beim Aufruf angehängt:
-    # docker compose --profile tools run --rm ingest --file /app/docs/datei.pdf
 
 # ---------------------------------------------------------------
 # Volumes
