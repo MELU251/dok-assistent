@@ -2,7 +2,7 @@ services:
 
   # ---------------------------------------------------------------
   # Chainlit Chat-UI – laeuft dauerhaft
-  # Zugriff: http://100.103.54.4:8000 (nur via Tailscale)
+  # Zugriff: http://<TAILSCALE_IP>:8000 (nur via Tailscale)
   #
   # Secrets kommen NICHT aus .env – Hostinger injiziert sie direkt
   # als Environment-Variablen zur Laufzeit.

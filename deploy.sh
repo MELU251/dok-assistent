@@ -40,6 +40,6 @@ docker compose ps
 
 echo ""
 echo "========================================"
-echo "[FERTIG] Chainlit läuft auf http://100.103.54.4:8000"
+echo "[FERTIG] Chainlit laeuft auf http://<TAILSCALE_IP>:8000"
 echo "Logs: docker compose logs -f chainlit"
 echo "========================================"

@@ -181,7 +181,7 @@ git push -u origin main
 | Variable | Wert / Quelle |
 |---|---|
 | `ANTHROPIC_API_KEY` | console.anthropic.com → API Keys |
-| `OLLAMA_BASE_URL` | `http://100.103.54.4:32768` |
+| `OLLAMA_BASE_URL` | `http://<TAILSCALE_IP>:32768` |
 | `OLLAMA_EMBED_MODEL` | `nomic-embed-text` |
 | `SUPABASE_URL` | Supabase Dashboard → Settings → API |
 | `SUPABASE_SERVICE_KEY` | Supabase Dashboard → API → service_role |
@@ -198,10 +198,10 @@ git push -u origin main
 ```bash
 # Tailscale-IP des VPS pruefen (auf VPS ausfuehren):
 tailscale ip -4
-# => 100.103.54.4
+# => <TAILSCALE_IP>
 
 # App ist erreichbar unter:
-# http://100.103.54.4:8000
+# http://<TAILSCALE_IP>:8000
 ```
 
 Pilot-Kunde benoetigt: **Tailscale-Client** installiert + Einladung angenommen.
@@ -224,14 +224,14 @@ git push
 ```bash
 # Option 1: Hostinger VPS Panel → Container Logs
 # Option 2: per SSH
-ssh root@100.103.54.4
+ssh root@<TAILSCALE_IP>
 docker logs -f dok-assistent
 ```
 
 ### Manuelles CLI-Ingesting (Fallback via SSH)
 
 ```bash
-ssh root@100.103.54.4
+ssh root@<TAILSCALE_IP>
 cd ~/dok-assistent
 docker compose --profile tools run --rm ingest --file /app/docs/datei.pdf
 ```
