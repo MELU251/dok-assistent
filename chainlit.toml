@@ -1,0 +1,14 @@
+[project]
+# Name der App – erscheint im Browser-Tab und im Header
+name = "Dok-Assistent"
+
+# Conversation-History im Browser nicht persistieren (PoC ohne DB-Backend)
+enable_telemetry = false
+
+[UI]
+# Zeigt "Powered by Chainlit" nicht an
+hide_cta = true
+
+[features]
+# multi_modal muss true sein damit cl.AskFileMessage funktioniert
+multi_modal = true

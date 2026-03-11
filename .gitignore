@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# Environment variables (never commit!)
+.env
+
+# Test/coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documents (local only)
+docs/
+!docs/.gitkeep
+
+# Chainlit
+.chainlit/
+chainlit.md
+
+# OS
+.DS_Store
+Thumbs.db

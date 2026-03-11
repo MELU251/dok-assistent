@@ -1,0 +1,35 @@
+# Secrets – niemals ins Image
+.env
+
+# Lokale Entwicklungsumgebung
+venv/
+.venv/
+
+# Python-Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Test-Dokumente (werden als Volume gemountet, nicht eingebaut)
+docs/
+
+# Tests (nicht im Produktions-Image)
+tests/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Chainlit lokale State-Files
+.files/
+chainlit.md
+
+# OS
+.DS_Store
+Thumbs.db

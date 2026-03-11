@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"J:/OneDrive/Daten/Coding/RAGPoC/venv/Scripts/python.exe\" --version)",
+      "Bash(cd \"J:/OneDrive/Daten/Coding/RAGPoC\" && venv/Scripts/pip.exe install --upgrade pip -q && venv/Scripts/pip.exe install -r requirements.txt 2>&1)"
+    ]
+  }
+}

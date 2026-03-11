@@ -1,0 +1,53 @@
+services:
+
+  # ---------------------------------------------------------------
+  # Chainlit Chat-UI – läuft dauerhaft
+  # Zugriff: http://100.103.54.4:8000 (nur via Tailscale)
+  # ---------------------------------------------------------------
+  chainlit:
+    build: .
+    container_name: dok-assistent
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      # Persistentes Volume für hochgeladene Dokumente
+      - docs_data:/app/docs
+      # Chainlit-Konfiguration aus dem Repo mounten
+      - ./chainlit.toml:/app/.chainlit/config.toml:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ---------------------------------------------------------------
+  # Ingest-Tool – nur bei Bedarf starten
+  #
+  # Verwendung:
+  #   docker cp dokument.pdf dok-assistent:/app/docs/
+  #   docker compose --profile tools run --rm ingest --file /app/docs/dokument.pdf
+  # ---------------------------------------------------------------
+  ingest:
+    build: .
+    restart: "no"
+    profiles:
+      - tools
+    env_file:
+      - .env
+    volumes:
+      - docs_data:/app/docs
+      - ./chainlit.toml:/app/.chainlit/config.toml:ro
+    entrypoint: ["python", "ingest_cli.py"]
+    # Argumente werden beim Aufruf angehängt:
+    # docker compose --profile tools run --rm ingest --file /app/docs/datei.pdf
+
+# ---------------------------------------------------------------
+# Volumes
+# ---------------------------------------------------------------
+volumes:
+  docs_data:
+    driver: local
