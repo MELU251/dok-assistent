@@ -3,6 +3,14 @@ name: Build & Deploy
 on:
   push:
     branches: [master]
+    paths:
+      - 'src/**'
+      - 'app.py'
+      - 'ingest_cli.py'
+      - 'requirements.txt'
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+      - '.github/workflows/deploy.yml'
 
 env:
   IMAGE: ghcr.io/melu251/dok-assistent:latest
@@ -58,6 +66,8 @@ jobs:
           context: .
           push: true
           tags: ${{ env.IMAGE }}
+          cache-from: type=registry,ref=ghcr.io/melu251/dok-assistent:cache
+          cache-to: type=registry,ref=ghcr.io/melu251/dok-assistent:cache,mode=max
 
       # -----------------------------------------------------------------
       # 4. Konfigurationsdateien auf den VPS kopieren (nativ, kein Docker)
