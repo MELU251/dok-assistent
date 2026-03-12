@@ -71,7 +71,7 @@ jobs:
           push: true
           tags: ${{ env.IMAGE }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=min
 
       # -----------------------------------------------------------------
       # 4. Konfigurationsdateien auf den VPS kopieren (nativ, kein Docker)
