@@ -1,0 +1,110 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [master]
+
+env:
+  IMAGE: ghcr.io/melu251/dok-assistent:latest
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write   # Schreibrecht auf ghcr.io
+
+    steps:
+      - name: Code auschecken
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------
+      # 1. Tailscale-Verbindung aufbauen (VPS ist nur via Tailscale erreichbar)
+      # -----------------------------------------------------------------
+      - name: Mit Tailscale verbinden
+        uses: tailscale/github-action@v2
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTH_KEY }}
+          args: --accept-routes
+
+      # -----------------------------------------------------------------
+      # 2. Docker-Image bauen und in GitHub Container Registry pushen
+      # -----------------------------------------------------------------
+      - name: Bei ghcr.io anmelden
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}   # automatisch vorhanden, kein Secret nötig
+
+      - name: Image bauen und pushen
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGE }}
+
+      # -----------------------------------------------------------------
+      # 2. Konfigurationsdateien auf den VPS kopieren
+      # -----------------------------------------------------------------
+      - name: Dateien auf VPS kopieren
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "docker-compose.yml,chainlit.toml"
+          target: "/opt/dok-assistent"
+
+      # -----------------------------------------------------------------
+      # 3. Auf VPS deployen: .env schreiben, Image pullen, Container starten
+      # -----------------------------------------------------------------
+      - name: Auf VPS deployen
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          ANTHROPIC_API_KEY:      ${{ secrets.ANTHROPIC_API_KEY }}
+          OLLAMA_BASE_URL:        ${{ secrets.OLLAMA_BASE_URL }}
+          OLLAMA_EMBED_MODEL:     ${{ secrets.OLLAMA_EMBED_MODEL }}
+          SUPABASE_URL:           ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY:   ${{ secrets.SUPABASE_SERVICE_KEY }}
+          CHUNK_SIZE:             ${{ secrets.CHUNK_SIZE }}
+          CHUNK_OVERLAP:          ${{ secrets.CHUNK_OVERLAP }}
+          TOP_K_RESULTS:          ${{ secrets.TOP_K_RESULTS }}
+          LOG_LEVEL:              ${{ secrets.LOG_LEVEL }}
+          CHAINLIT_AUTH_SECRET:   ${{ secrets.CHAINLIT_AUTH_SECRET }}
+          CHAINLIT_USER:          ${{ secrets.CHAINLIT_USER }}
+          CHAINLIT_PASSWORD:      ${{ secrets.CHAINLIT_PASSWORD }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          envs: >
+            ANTHROPIC_API_KEY,OLLAMA_BASE_URL,OLLAMA_EMBED_MODEL,
+            SUPABASE_URL,SUPABASE_SERVICE_KEY,
+            CHUNK_SIZE,CHUNK_OVERLAP,TOP_K_RESULTS,LOG_LEVEL,
+            CHAINLIT_AUTH_SECRET,CHAINLIT_USER,CHAINLIT_PASSWORD
+          script: |
+            cd /opt/dok-assistent
+
+            # .env aus den Secrets schreiben (wird nie ins Repo committed)
+            cat > .env <<EOF
+            ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+            OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+            OLLAMA_EMBED_MODEL=${OLLAMA_EMBED_MODEL}
+            SUPABASE_URL=${SUPABASE_URL}
+            SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+            CHUNK_SIZE=${CHUNK_SIZE}
+            CHUNK_OVERLAP=${CHUNK_OVERLAP}
+            TOP_K_RESULTS=${TOP_K_RESULTS}
+            LOG_LEVEL=${LOG_LEVEL}
+            CHAINLIT_AUTH_SECRET=${CHAINLIT_AUTH_SECRET}
+            CHAINLIT_USER=${CHAINLIT_USER}
+            CHAINLIT_PASSWORD=${CHAINLIT_PASSWORD}
+            EOF
+
+            # Bei ghcr.io anmelden und neues Image holen
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u melu251 --password-stdin
+            docker compose pull
+
+            # Container neu starten (zero-downtime: alter läuft bis neuer bereit ist)
+            docker compose up -d --remove-orphans

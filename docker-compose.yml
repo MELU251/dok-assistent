@@ -8,7 +8,7 @@ services:
   # als Environment-Variablen zur Laufzeit.
   # ---------------------------------------------------------------
   chainlit:
-    build: .
+    image: ghcr.io/melu251/dok-assistent:latest
     container_name: dok-assistent
     restart: unless-stopped
     ports:
@@ -53,7 +53,7 @@ services:
   # Oder Datei zuerst hochladen via Chainlit-Upload-Button
   # ---------------------------------------------------------------
   ingest:
-    build: .
+    image: ghcr.io/melu251/dok-assistent:latest
     restart: "no"
     profiles:
       - tools
