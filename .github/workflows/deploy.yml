@@ -21,6 +21,7 @@ jobs:
     permissions:
       contents: read
       packages: write   # Schreibrecht auf ghcr.io
+      actions: write    # Schreibrecht für Build-Cache
 
     steps:
       - name: Code auschecken
@@ -66,8 +67,8 @@ jobs:
           context: .
           push: true
           tags: ${{ env.IMAGE }}
-          cache-from: type=registry,ref=ghcr.io/melu251/dok-assistent:cache
-          cache-to: type=registry,ref=ghcr.io/melu251/dok-assistent:cache,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       # -----------------------------------------------------------------
       # 4. Konfigurationsdateien auf den VPS kopieren (nativ, kein Docker)
