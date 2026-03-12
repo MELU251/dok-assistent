@@ -20,6 +20,8 @@ jobs:
 
       # -----------------------------------------------------------------
       # 1. Tailscale-Verbindung aufbauen (VPS ist nur via Tailscale erreichbar)
+      #    Wichtig: native ssh/scp nutzen, nicht appleboy/* (laufen in Docker
+      #    und haben keinen Zugriff auf das Tailscale-Interface des Runners)
       # -----------------------------------------------------------------
       - name: Mit Tailscale verbinden
         uses: tailscale/github-action@v2
@@ -31,14 +33,24 @@ jobs:
         run: nc -zv -w 10 ${{ secrets.VPS_HOST }} 22
 
       # -----------------------------------------------------------------
-      # 2. Docker-Image bauen und in GitHub Container Registry pushen
+      # 2. SSH-Key für native ssh/scp vorbereiten
+      # -----------------------------------------------------------------
+      - name: SSH-Key einrichten
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      # -----------------------------------------------------------------
+      # 3. Docker-Image bauen und in GitHub Container Registry pushen
       # -----------------------------------------------------------------
       - name: Bei ghcr.io anmelden
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}   # automatisch vorhanden, kein Secret nötig
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Image bauen und pushen
         uses: docker/build-push-action@v5
@@ -48,66 +60,43 @@ jobs:
           tags: ${{ env.IMAGE }}
 
       # -----------------------------------------------------------------
-      # 2. Konfigurationsdateien auf den VPS kopieren
+      # 4. Konfigurationsdateien auf den VPS kopieren (nativ, kein Docker)
       # -----------------------------------------------------------------
       - name: Dateien auf VPS kopieren
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "docker-compose.yml,chainlit.toml"
-          target: "/opt/dok-assistent"
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "mkdir -p /opt/dok-assistent"
+          scp -i ~/.ssh/deploy_key \
+            docker-compose.yml chainlit.toml \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/dok-assistent/
 
       # -----------------------------------------------------------------
-      # 3. Auf VPS deployen: .env schreiben, Image pullen, Container starten
+      # 5. Auf VPS deployen: .env schreiben, Image pullen, Container starten
       # -----------------------------------------------------------------
       - name: Auf VPS deployen
-        uses: appleboy/ssh-action@v1.0.3
-        env:
-          ANTHROPIC_API_KEY:      ${{ secrets.ANTHROPIC_API_KEY }}
-          OLLAMA_BASE_URL:        ${{ secrets.OLLAMA_BASE_URL }}
-          OLLAMA_EMBED_MODEL:     ${{ secrets.OLLAMA_EMBED_MODEL }}
-          SUPABASE_URL:           ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY:   ${{ secrets.SUPABASE_SERVICE_KEY }}
-          CHUNK_SIZE:             ${{ secrets.CHUNK_SIZE }}
-          CHUNK_OVERLAP:          ${{ secrets.CHUNK_OVERLAP }}
-          TOP_K_RESULTS:          ${{ secrets.TOP_K_RESULTS }}
-          LOG_LEVEL:              ${{ secrets.LOG_LEVEL }}
-          CHAINLIT_AUTH_SECRET:   ${{ secrets.CHAINLIT_AUTH_SECRET }}
-          CHAINLIT_USER:          ${{ secrets.CHAINLIT_USER }}
-          CHAINLIT_PASSWORD:      ${{ secrets.CHAINLIT_PASSWORD }}
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          envs: >
-            ANTHROPIC_API_KEY,OLLAMA_BASE_URL,OLLAMA_EMBED_MODEL,
-            SUPABASE_URL,SUPABASE_SERVICE_KEY,
-            CHUNK_SIZE,CHUNK_OVERLAP,TOP_K_RESULTS,LOG_LEVEL,
-            CHAINLIT_AUTH_SECRET,CHAINLIT_USER,CHAINLIT_PASSWORD
-          script: |
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} bash << 'ENDSSH'
+            set -e
             cd /opt/dok-assistent
 
             # .env aus den Secrets schreiben (wird nie ins Repo committed)
-            cat > .env <<EOF
-            ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-            OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
-            OLLAMA_EMBED_MODEL=${OLLAMA_EMBED_MODEL}
-            SUPABASE_URL=${SUPABASE_URL}
-            SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
-            CHUNK_SIZE=${CHUNK_SIZE}
-            CHUNK_OVERLAP=${CHUNK_OVERLAP}
-            TOP_K_RESULTS=${TOP_K_RESULTS}
-            LOG_LEVEL=${LOG_LEVEL}
-            CHAINLIT_AUTH_SECRET=${CHAINLIT_AUTH_SECRET}
-            CHAINLIT_USER=${CHAINLIT_USER}
-            CHAINLIT_PASSWORD=${CHAINLIT_PASSWORD}
-            EOF
+            cat > .env << EOF
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          OLLAMA_BASE_URL=${{ secrets.OLLAMA_BASE_URL }}
+          OLLAMA_EMBED_MODEL=${{ secrets.OLLAMA_EMBED_MODEL }}
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+          CHUNK_SIZE=${{ secrets.CHUNK_SIZE }}
+          CHUNK_OVERLAP=${{ secrets.CHUNK_OVERLAP }}
+          TOP_K_RESULTS=${{ secrets.TOP_K_RESULTS }}
+          LOG_LEVEL=${{ secrets.LOG_LEVEL }}
+          CHAINLIT_AUTH_SECRET=${{ secrets.CHAINLIT_AUTH_SECRET }}
+          CHAINLIT_USER=${{ secrets.CHAINLIT_USER }}
+          CHAINLIT_PASSWORD=${{ secrets.CHAINLIT_PASSWORD }}
+          EOF
 
             # Bei ghcr.io anmelden und neues Image holen
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u melu251 --password-stdin
             docker compose pull
-
-            # Container neu starten (zero-downtime: alter läuft bis neuer bereit ist)
             docker compose up -d --remove-orphans
+          ENDSSH
