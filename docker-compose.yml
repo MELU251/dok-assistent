@@ -12,7 +12,7 @@ services:
     container_name: dok-assistent
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "100.103.54.4:8000:8000"
     environment:
       # Anthropic – LLM fuer Antwortgenerierung
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
