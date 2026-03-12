@@ -25,7 +25,10 @@ jobs:
         uses: tailscale/github-action@v2
         with:
           authkey: ${{ secrets.TAILSCALE_AUTH_KEY }}
-          args: --accept-routes
+          args: --accept-routes --accept-dns
+
+      - name: VPS-Erreichbarkeit prüfen
+        run: nc -zv -w 10 ${{ secrets.VPS_HOST }} 22
 
       # -----------------------------------------------------------------
       # 2. Docker-Image bauen und in GitHub Container Registry pushen
