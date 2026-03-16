@@ -8,6 +8,7 @@ Features:
   - Dokument-Loeschung via /loeschen [dateiname]
 """
 
+import asyncio
 import logging
 import shutil
 from pathlib import Path
@@ -207,7 +208,7 @@ async def _run_upload_flow() -> None:
             def progress(current: int, total: int) -> None:
                 pass  # Chainlit Steps sind nicht live-aktualisierbar; Logging genuegt
 
-            stored = embed_and_store(chunks, callback=progress)
+            stored = await asyncio.to_thread(embed_and_store, chunks, callback=progress)
             step.output = f"{stored} Vektoren in Supabase gespeichert"
         except RuntimeError as exc:
             logger.error("embed_and_store failed: %s", exc)
@@ -250,36 +251,41 @@ async def _run_upload_flow() -> None:
 async def _run_delete_flow(filename: str) -> None:
     """Alle Chunks eines Dokuments aus Supabase loeschen und Datei entfernen.
 
+    Reihenfolge (atomar-sicher):
+    1. Lokale Datei pruefen — wenn nicht vorhanden, Supabase NICHT anfassen.
+    2. Lokale Datei zuerst loeschen.
+    3. Supabase-Records danach loeschen.
+
     Args:
         filename: Dateiname des zu loeschenden Dokuments.
     """
-    # Pruefen ob das Dokument ueberhaupt indexiert ist
-    indexed = get_indexed_documents()
-    if filename not in indexed:
+    local_file = DOCS_DIR / filename
+
+    # Schritt 1: Lokale Datei pruefen — wenn nicht vorhanden, Supabase NICHT anfassen
+    if not local_file.exists():
         await cl.Message(
             content=(
-                f"'{filename}' wurde nicht gefunden.\n\n"
-                f"Indexierte Dokumente: {', '.join(indexed) if indexed else '(keine)'}"
+                f"Lokale Datei '{filename}' nicht gefunden.\n"
+                "Supabase-Eintraege wurden nicht veraendert."
             )
         ).send()
         return
 
     async with cl.Step(name=f"Loesche '{filename}'...") as step:
+        # Schritt 2: Lokale Datei ZUERST loeschen
+        local_file.unlink()
+        step.output = f"Datei '{filename}' aus /docs entfernt"
+
+        # Schritt 3: Supabase-Records loeschen
         try:
-            deleted_chunks = delete_document(filename)
-            step.output = f"{deleted_chunks} Chunks aus Datenbank entfernt"
+            deleted_chunks = await asyncio.to_thread(delete_document, filename)
+            step.output += f" | {deleted_chunks} Chunks aus Datenbank entfernt"
         except RuntimeError as exc:
-            logger.error("Delete failed for '%s': %s", filename, exc)
+            logger.error("Delete DB failed for '%s': %s", filename, exc)
             await cl.Message(
-                content=f"Fehler beim Loeschen aus der Datenbank: {type(exc).__name__}"
+                content=f"Datei wurde geloescht, aber Datenbankfehler: {type(exc).__name__}"
             ).send()
             return
-
-        # Originaldatei loeschen falls vorhanden
-        local_file = DOCS_DIR / filename
-        if local_file.exists():
-            local_file.unlink()
-            step.output += f" | Datei '{filename}' aus /docs entfernt"
 
     updated_docs = get_indexed_documents()
     remaining = (
@@ -309,7 +315,7 @@ async def _run_rag_flow(question: str) -> None:
     """
     async with cl.Step(name="Durchsuche Dokumente und erstelle Antwort ...") as step:
         try:
-            result = answer(question)
+            result = await asyncio.to_thread(answer, question)
         except Exception as exc:
             logger.error("Pipeline error: %s", exc)
             await cl.Message(
