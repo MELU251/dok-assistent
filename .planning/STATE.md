@@ -1,3 +1,19 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: planning
+stopped_at: Completed 01-tech-debt-foundation/01-01-PLAN.md
+last_updated: "2026-03-16T20:27:25.267Z"
+last_activity: 2026-03-12 — Roadmap created; ready to plan Phase 1
+progress:
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 4
+  completed_plans: 1
+  percent: 25
+---
+
 # Project State
 
 ## Project Reference
@@ -14,7 +30,7 @@ Plan: 0 of TBD in current phase
 Status: Ready to plan
 Last activity: 2026-03-12 — Roadmap created; ready to plan Phase 1
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███░░░░░░░] 25%
 
 ## Performance Metrics
 
@@ -34,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01-tech-debt-foundation P01 | 5min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -46,6 +63,9 @@ Recent decisions affecting current work:
 - Roadmap: Phase 2 (CI/CD) depends on Phase 1 but is otherwise independent of Phase 3; can be planned in parallel
 - Architecture: Explicit `src/history.py` pattern recommended over Chainlit `BaseDataLayer` to avoid API coupling risk (verify live before Phase 3 starts)
 - Architecture: RAGAS evaluation (RAG-01, RAG-02) deferred to v2 — not in v1 roadmap
+- [Phase 01-tech-debt-foundation]: Patch target src.ingest.OllamaEmbeddings correct for current code; will shift to _get_embedder after Plan 02
+- [Phase 01-tech-debt-foundation]: pytest-asyncio asyncio_mode=auto via pytest.ini to avoid per-test marker drift
+- [Phase 01-tech-debt-foundation]: Unsupported-extension test uses .csv (not .txt) because .txt is now in the ingest.py supported set
 
 ### Pending Todos
 
@@ -58,6 +78,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12
-Stopped at: Roadmap created — Phase 1 ready to plan
+Last session: 2026-03-16T20:27:25.265Z
+Stopped at: Completed 01-tech-debt-foundation/01-01-PLAN.md
 Resume file: None
