@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-tech-debt-foundation/01-01-PLAN.md
-last_updated: "2026-03-16T20:27:25.267Z"
+stopped_at: Completed 01-tech-debt-foundation/01-04-PLAN.md
+last_updated: "2026-03-16T20:35:15.251Z"
 last_activity: 2026-03-12 — Roadmap created; ready to plan Phase 1
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 2
   percent: 25
 ---
 
@@ -51,6 +51,7 @@ Progress: [███░░░░░░░] 25%
 
 *Updated after each plan completion*
 | Phase 01-tech-debt-foundation P01 | 5min | 2 tasks | 6 files |
+| Phase 01-tech-debt-foundation P04 | 15min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -66,6 +67,8 @@ Recent decisions affecting current work:
 - [Phase 01-tech-debt-foundation]: Patch target src.ingest.OllamaEmbeddings correct for current code; will shift to _get_embedder after Plan 02
 - [Phase 01-tech-debt-foundation]: pytest-asyncio asyncio_mode=auto via pytest.ini to avoid per-test marker drift
 - [Phase 01-tech-debt-foundation]: Unsupported-extension test uses .csv (not .txt) because .txt is now in the ingest.py supported set
+- [Phase 01-tech-debt-foundation]: Local file presence is the authoritative delete guard — get_indexed_documents() pre-flight removed from _run_delete_flow
+- [Phase 01-tech-debt-foundation]: local_file.unlink() called BEFORE delete_document to ensure file-first atomic delete order (TECH-05)
 
 ### Pending Todos
 
@@ -78,6 +81,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T20:27:25.265Z
-Stopped at: Completed 01-tech-debt-foundation/01-01-PLAN.md
+Last session: 2026-03-16T20:35:15.248Z
+Stopped at: Completed 01-tech-debt-foundation/01-04-PLAN.md
 Resume file: None

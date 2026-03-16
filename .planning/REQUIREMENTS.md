@@ -13,7 +13,7 @@ Requirements für den Pilot-Launch. Jedes Requirement mappt auf eine Roadmap-Pha
 - [ ] **TECH-02**: `OllamaEmbeddings`-Instanz wird als Modul-Level-Singleton gecacht – nicht bei jedem Embedding-Call neu erstellt
 - [ ] **TECH-03**: Supabase-Client wird als Singleton gecacht – nicht in `ingest.py`, `retrieval.py` und `app.py` mehrfach instanziiert
 - [x] **TECH-04**: `test_ingest.py` patcht `OllamaEmbeddings` (nicht `OpenAIEmbeddings`) – CI testet den tatsächlichen Embedding-Pfad
-- [ ] **TECH-05**: Delete-Flow löscht zuerst die lokale Datei, dann die Supabase-Records; bei Datei-Fehler wird Supabase nicht angefasst
+- [x] **TECH-05**: Delete-Flow löscht zuerst die lokale Datei, dann die Supabase-Records; bei Datei-Fehler wird Supabase nicht angefasst
 
 ### CI/CD
 
@@ -75,7 +75,7 @@ Welche Phasen welche Requirements abdecken.
 | TECH-02 | Phase 1 | Pending |
 | TECH-03 | Phase 1 | Pending |
 | TECH-04 | Phase 1 | Complete |
-| TECH-05 | Phase 1 | Pending |
+| TECH-05 | Phase 1 | Complete |
 | CICD-01 | Phase 2 | Pending |
 | CICD-02 | Phase 2 | Pending |
 | CICD-03 | Phase 2 | Pending |
