@@ -7,6 +7,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 import tiktoken
+from functools import lru_cache
 from langchain_community.document_loaders import TextLoader, UnstructuredFileLoader
 from langchain_core.documents import Document
 from langchain_ollama import OllamaEmbeddings
@@ -19,6 +20,23 @@ logger = logging.getLogger(__name__)
 
 # Anzahl Chunks pro Embedding-Batch – Balance zwischen Geschwindigkeit und Fortschrittsgranularität
 _EMBED_BATCH_SIZE = 10
+
+
+@lru_cache(maxsize=1)
+def _get_embedder() -> OllamaEmbeddings:
+    """OllamaEmbeddings-Singleton – wird einmal erstellt und wiederverwendet."""
+    settings = get_settings()
+    return OllamaEmbeddings(
+        model=settings.ollama_embed_model,
+        base_url=settings.ollama_base_url,
+    )
+
+
+@lru_cache(maxsize=1)
+def _get_supabase_client():
+    """Supabase-Client-Singleton – wird einmal erstellt und wiederverwendet."""
+    settings = get_settings()
+    return create_client(settings.supabase_url, settings.supabase_service_key)
 
 
 def load_document(file_path: str) -> list[Document]:
@@ -146,10 +164,7 @@ def embed_and_store(
     t_start = time.monotonic()
 
     try:
-        embedder = OllamaEmbeddings(
-            model=settings.ollama_embed_model,
-            base_url=settings.ollama_base_url,
-        )
+        embedder = _get_embedder()
 
         all_embeddings: list[list[float]] = []
 
@@ -181,7 +196,7 @@ def embed_and_store(
     # In Supabase speichern
     logger.info("Storing %d chunks in Supabase...", total)
     try:
-        client = create_client(settings.supabase_url, settings.supabase_service_key)
+        client = _get_supabase_client()
         rows = [
             {
                 "id": str(uuid.uuid4()),
@@ -219,11 +234,10 @@ def delete_document(source: str, tenant_id: str = "default") -> int:
     Raises:
         RuntimeError: Bei Datenbankfehler.
     """
-    settings = get_settings()
     logger.info("Deleting document '%s' (tenant=%s)...", source, tenant_id)
 
     try:
-        client = create_client(settings.supabase_url, settings.supabase_service_key)
+        client = _get_supabase_client()
         result = (
             client.table("document_chunks")
             .delete()

@@ -21,7 +21,7 @@ class TestUploadFlowAsync:
             patch("app.asyncio.to_thread", mock_to_thread),
             patch("app.cl.AskFileMessage") as mock_ask,
             patch("app.cl.Step") as mock_step,
-            patch("app.cl.Message"),
+            patch("app.cl.Message") as mock_message,
             patch("app.shutil.copy"),
             patch("app.load_document", return_value=[MagicMock()]),
             patch("app.chunk_document", return_value=[MagicMock()]),
@@ -30,6 +30,7 @@ class TestUploadFlowAsync:
             mock_ask.return_value.send = AsyncMock(return_value=[mock_file])
             mock_step.return_value.__aenter__ = AsyncMock(return_value=MagicMock())
             mock_step.return_value.__aexit__ = AsyncMock(return_value=False)
+            mock_message.return_value.send = AsyncMock(return_value=None)
             await app._run_upload_flow()
 
         called_fns = [call.args[0] for call in mock_to_thread.call_args_list]
@@ -55,10 +56,11 @@ class TestRagFlowAsync:
         with (
             patch("app.asyncio.to_thread", mock_to_thread),
             patch("app.cl.Step") as mock_step,
-            patch("app.cl.Message"),
+            patch("app.cl.Message") as mock_message,
         ):
             mock_step.return_value.__aenter__ = AsyncMock(return_value=MagicMock())
             mock_step.return_value.__aexit__ = AsyncMock(return_value=False)
+            mock_message.return_value.send = AsyncMock(return_value=None)
             await app._run_rag_flow("Was ist das?")
 
         called_fns = [call.args[0] for call in mock_to_thread.call_args_list]
