@@ -10,8 +10,8 @@ Requirements für den Pilot-Launch. Jedes Requirement mappt auf eine Roadmap-Pha
 ### Tech Debt
 
 - [ ] **TECH-01**: `embed_and_store()` und `pipeline.answer()` laufen in separaten Threads (asyncio.to_thread()), sodass der Chainlit-Event-Loop nicht blockiert wird
-- [ ] **TECH-02**: `OllamaEmbeddings`-Instanz wird als Modul-Level-Singleton gecacht – nicht bei jedem Embedding-Call neu erstellt
-- [ ] **TECH-03**: Supabase-Client wird als Singleton gecacht – nicht in `ingest.py`, `retrieval.py` und `app.py` mehrfach instanziiert
+- [x] **TECH-02**: `OllamaEmbeddings`-Instanz wird als Modul-Level-Singleton gecacht – nicht bei jedem Embedding-Call neu erstellt
+- [x] **TECH-03**: Supabase-Client wird als Singleton gecacht – nicht in `ingest.py`, `retrieval.py` und `app.py` mehrfach instanziiert
 - [x] **TECH-04**: `test_ingest.py` patcht `OllamaEmbeddings` (nicht `OpenAIEmbeddings`) – CI testet den tatsächlichen Embedding-Pfad
 - [x] **TECH-05**: Delete-Flow löscht zuerst die lokale Datei, dann die Supabase-Records; bei Datei-Fehler wird Supabase nicht angefasst
 
@@ -72,8 +72,8 @@ Welche Phasen welche Requirements abdecken.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | TECH-01 | Phase 1 | Pending |
-| TECH-02 | Phase 1 | Pending |
-| TECH-03 | Phase 1 | Pending |
+| TECH-02 | Phase 1 | Complete |
+| TECH-03 | Phase 1 | Complete |
 | TECH-04 | Phase 1 | Complete |
 | TECH-05 | Phase 1 | Complete |
 | CICD-01 | Phase 2 | Pending |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-tech-debt-foundation/01-04-PLAN.md
-last_updated: "2026-03-16T20:35:15.251Z"
+stopped_at: Completed 01-tech-debt-foundation/01-02-PLAN.md
+last_updated: "2026-03-16T20:57:10.358Z"
 last_activity: 2026-03-12 — Roadmap created; ready to plan Phase 1
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 4
   percent: 25
 ---
 
@@ -52,6 +52,7 @@ Progress: [███░░░░░░░] 25%
 *Updated after each plan completion*
 | Phase 01-tech-debt-foundation P01 | 5min | 2 tasks | 6 files |
 | Phase 01-tech-debt-foundation P04 | 15min | 1 tasks | 2 files |
+| Phase 01-tech-debt-foundation P02 | 15min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,8 @@ Recent decisions affecting current work:
 - [Phase 01-tech-debt-foundation]: Unsupported-extension test uses .csv (not .txt) because .txt is now in the ingest.py supported set
 - [Phase 01-tech-debt-foundation]: Local file presence is the authoritative delete guard — get_indexed_documents() pre-flight removed from _run_delete_flow
 - [Phase 01-tech-debt-foundation]: local_file.unlink() called BEFORE delete_document to ensure file-first atomic delete order (TECH-05)
+- [Phase 01-tech-debt-foundation]: get_settings() still called directly in embed_and_store() for log message — test must mock get_settings alongside _get_embedder/_get_supabase_client
+- [Phase 01-tech-debt-foundation]: Patch target is getter function (_get_embedder) not class (OllamaEmbeddings) when lru_cache is in the call chain — avoids cached real instance in tests
 
 ### Pending Todos
 
@@ -81,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T20:35:15.248Z
-Stopped at: Completed 01-tech-debt-foundation/01-04-PLAN.md
+Last session: 2026-03-16T20:57:10.355Z
+Stopped at: Completed 01-tech-debt-foundation/01-02-PLAN.md
 Resume file: None
