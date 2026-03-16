@@ -28,7 +28,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Nach 20 aufeinanderfolgenden Queries hat die App keine TCP-Verbindungserschöpfung auf dem VPS (OllamaEmbeddings- und Supabase-Client-Instanzen sind Singletons)
   3. `pytest` läuft grün und testet tatsächlich `OllamaEmbeddings` (nicht OpenAI); Dimension-Assertion ist 768, nicht 1536
   4. Ein `/loeschen`-Befehl, der die lokale Datei nicht findet, hinterlässt die Supabase-Records unberührt
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Test infrastructure: fix test_ingest.py + create RED scaffolds for TECH-01/02/03/05
+- [ ] 01-02-PLAN.md — Singleton clients: add _get_embedder()/_get_supabase_client() to ingest.py and retrieval.py
+- [ ] 01-03-PLAN.md — Async event loop fix: wrap embed_and_store and answer with asyncio.to_thread()
+- [ ] 01-04-PLAN.md — Atomic delete flow: reorder _run_delete_flow() to delete local file before Supabase
 
 ### Phase 2: CI/CD Stabilization
 **Goal**: Kein gebrochener Code erreicht den VPS — Tests laufen vor jedem Build, Build läuft vor jedem Deploy, und der Deploy wird aktiv verifiziert
@@ -69,7 +75,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Tech Debt Foundation | 0/TBD | Not started | - |
+| 1. Tech Debt Foundation | 0/4 | Not started | - |
 | 2. CI/CD Stabilization | 0/TBD | Not started | - |
 | 3. Chat History and Multi-Turn Context | 0/TBD | Not started | - |
 | 4. UI/UX Polish | 0/TBD | Not started | - |
