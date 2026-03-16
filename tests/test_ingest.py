@@ -128,25 +128,22 @@ class TestEmbedAndStore:
         result = embed_and_store([])
         assert result == 0
 
-    @patch("src.ingest.create_client")
-    @patch("src.ingest.OllamaEmbeddings")
+    @patch("src.ingest._get_supabase_client")
+    @patch("src.ingest._get_embedder")
     @patch("src.ingest.get_settings")
     def test_stores_correct_number_of_chunks(
-        self, mock_settings, mock_embeddings_cls, mock_create_client, sample_chunks
+        self, mock_settings, mock_get_embedder, mock_get_client, sample_chunks
     ):
         from src.ingest import embed_and_store
 
         mock_settings.return_value = MagicMock(
             ollama_embed_model="nomic-embed-text",
-            ollama_base_url="http://100.0.0.1:11434",
-            supabase_url="https://x.supabase.co",
-            supabase_service_key="key",
         )
 
         # Mock embedder
         mock_embedder = MagicMock()
         mock_embedder.embed_documents.return_value = [[0.1] * 768] * len(sample_chunks)
-        mock_embeddings_cls.return_value = mock_embedder
+        mock_get_embedder.return_value = mock_embedder
 
         # Mock Supabase client
         mock_table = MagicMock()
@@ -155,7 +152,7 @@ class TestEmbedAndStore:
         mock_table.insert.return_value.execute.return_value = mock_insert_result
         mock_supabase = MagicMock()
         mock_supabase.table.return_value = mock_table
-        mock_create_client.return_value = mock_supabase
+        mock_get_client.return_value = mock_supabase
 
         stored = embed_and_store(sample_chunks, tenant_id="test")
         assert stored == len(sample_chunks)
