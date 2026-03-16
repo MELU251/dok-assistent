@@ -47,10 +47,10 @@ class TestLoadDocument:
     def test_raises_for_unsupported_extension(self, tmp_path):
         from src.ingest import load_document
 
-        txt_file = tmp_path / "doc.txt"
-        txt_file.write_text("content")
+        csv_file = tmp_path / "doc.csv"
+        csv_file.write_text("content")
         with pytest.raises(ValueError, match="Unsupported file type"):
-            load_document(str(txt_file))
+            load_document(str(csv_file))
 
     @patch("src.ingest.UnstructuredFileLoader")
     def test_loads_pdf_successfully(self, mock_loader_cls, tmp_path):
@@ -129,7 +129,7 @@ class TestEmbedAndStore:
         assert result == 0
 
     @patch("src.ingest.create_client")
-    @patch("src.ingest.OpenAIEmbeddings")
+    @patch("src.ingest.OllamaEmbeddings")
     @patch("src.ingest.get_settings")
     def test_stores_correct_number_of_chunks(
         self, mock_settings, mock_embeddings_cls, mock_create_client, sample_chunks
@@ -137,14 +137,15 @@ class TestEmbedAndStore:
         from src.ingest import embed_and_store
 
         mock_settings.return_value = MagicMock(
-            openai_api_key="sk-test",
+            ollama_embed_model="nomic-embed-text",
+            ollama_base_url="http://100.0.0.1:11434",
             supabase_url="https://x.supabase.co",
             supabase_service_key="key",
         )
 
         # Mock embedder
         mock_embedder = MagicMock()
-        mock_embedder.embed_documents.return_value = [[0.1] * 1536] * len(sample_chunks)
+        mock_embedder.embed_documents.return_value = [[0.1] * 768] * len(sample_chunks)
         mock_embeddings_cls.return_value = mock_embedder
 
         # Mock Supabase client
