@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 03-chat-history-and-multi-turn-context/03-04-PLAN.md
-last_updated: "2026-03-17T17:17:21.033Z"
+stopped_at: Completed 03-chat-history-and-multi-turn-context/03-02-PLAN.md
+last_updated: "2026-03-17T17:18:14.197Z"
 last_activity: 2026-03-12 — Roadmap created; ready to plan Phase 1
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 10
-  completed_plans: 7
+  completed_plans: 9
   percent: 25
 ---
 
@@ -57,6 +57,8 @@ Progress: [███░░░░░░░] 25%
 | Phase 02-cicd-stabilization P01 | 45min | 3 tasks | 2 files |
 | Phase 03-chat-history-and-multi-turn-context P01 | 10min | 2 tasks | 6 files |
 | Phase 03-chat-history-and-multi-turn-context P04 | 12min | 1 tasks | 3 files |
+| Phase 03-chat-history-and-multi-turn-context P02 | 4min | 2 tasks | 7 files |
+| Phase 03-chat-history-and-multi-turn-context P03 | 5min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -88,6 +90,12 @@ Recent decisions affecting current work:
 - [Phase 03-chat-history-and-multi-turn-context]: RAG context placed in system= parameter (not merged into user message) — keeps conversation turns clean for multi-turn context (CHAT-01)
 - [Phase 03-chat-history-and-multi-turn-context]: _SYSTEM_PROMPT_TEMPLATE replaces _SYSTEM_PROMPT — template has {context} only, question goes into messages=
 - [Phase 03-chat-history-and-multi-turn-context]: History window cap: (history or [])[-6:] gives last 3 turns (6 messages) before appending current question
+- [Phase 03-chat-history-and-multi-turn-context]: Hand-written op.execute() migrations (not autogenerate) because pgvector vector() type is not natively understood by SQLAlchemy reflection
+- [Phase 03-chat-history-and-multi-turn-context]: IF NOT EXISTS guards in all DDL — alembic upgrade head is idempotent on existing DBs with document_chunks
+- [Phase 03-chat-history-and-multi-turn-context]: Chainlit 2.10.0 requires exact camelCase column names (createdAt, userId, threadId) — snake_case causes runtime SQL errors
+- [Phase 03-chat-history-and-multi-turn-context]: DATABASE_URL (sync postgresql://) for Alembic, ASYNC_DATABASE_URL (postgresql+asyncpg://) for Chainlit SQLAlchemyDataLayer — separate env vars required
+- [Phase 03-chat-history-and-multi-turn-context]: source_filter is a client-side post-filter on RPC results (not DB-side) — avoids schema changes, match_count tripled to compensate
+- [Phase 03-chat-history-and-multi-turn-context]: Retrieval unit tests must mock get_settings alongside _get_embedder/_get_supabase_client — get_settings() called directly in search() for top_k_results
 
 ### Pending Todos
 
@@ -100,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T17:17:21.030Z
-Stopped at: Completed 03-chat-history-and-multi-turn-context/03-04-PLAN.md
+Last session: 2026-03-17T17:18:04.493Z
+Stopped at: Completed 03-chat-history-and-multi-turn-context/03-02-PLAN.md
 Resume file: None
