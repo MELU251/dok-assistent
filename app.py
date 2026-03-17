@@ -21,6 +21,8 @@ from src.config import get_settings
 from src.ingest import chunk_document, delete_document, embed_and_store, load_document
 from src.pipeline import answer
 from src.retrieval import get_indexed_documents
+from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
+from chainlit.types import ThreadDict
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +37,25 @@ _ACCEPTED_TYPES = [
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ]
 _MAX_SIZE_MB = 50
+
+
+# ---------------------------------------------------------------
+# Datenpersistenz
+# ---------------------------------------------------------------
+
+@cl.data_layer
+def get_data_layer() -> SQLAlchemyDataLayer:
+    """Chainlit-Datenpersistenz via SQLAlchemy (Supabase PostgreSQL).
+
+    Returns:
+        SQLAlchemyDataLayer-Instanz fuer Thread- und Nachrichten-Persistenz.
+    """
+    settings = get_settings()
+    return SQLAlchemyDataLayer(
+        conninfo=settings.async_database_url,
+        ssl_require=True,
+        show_logger=False,
+    )
 
 
 # ---------------------------------------------------------------
@@ -109,6 +130,29 @@ async def on_chat_start() -> None:
     ).send()
 
 
+@cl.on_chat_resume
+async def on_chat_resume(thread: ThreadDict) -> None:
+    """Gespraechsverlauf beim Wiederoeffnen eines alten Chats wiederherstellen.
+
+    Rekonstruiert die in-memory History aus den Steps des Threads damit
+    Multi-Turn-Kontext (CHAT-01) auch in fortgesetzten Sessions funktioniert.
+
+    Args:
+        thread: Chainlit ThreadDict mit id, name und steps (Nachrichten-Historie).
+    """
+    history: list[dict] = []
+    for step in thread.get("steps", []):
+        if step.get("type") == "user_message":
+            history.append({"role": "user", "content": step.get("input", "")})
+        elif step.get("type") == "assistant_message":
+            history.append({"role": "assistant", "content": step.get("output", "")})
+    cl.user_session.set("history", history)
+    logger.info(
+        "Chat wieder aufgenommen: %d Nachrichten aus History wiederhergestellt",
+        len(history),
+    )
+
+
 @cl.action_callback("start_upload")
 async def on_upload_action(action: cl.Action) -> None:
     """Upload-Dialog oeffnen wenn der Nutzer den Upload-Button klickt."""
@@ -124,6 +168,21 @@ async def on_message(message: cl.Message) -> None:
     """
     text = message.content.strip()
     if not text:
+        return
+
+    # Filterbefehl: /filter [dateiname] oder /filter (ohne Argument zum Zuruecksetzen)
+    if text.lower().startswith("/filter"):
+        parts = text.split(maxsplit=1)
+        if len(parts) < 2 or not parts[1].strip():
+            cl.user_session.set("source_filter", None)
+            await cl.Message(content="Filter zurueckgesetzt. Alle Dokumente werden durchsucht.").send()
+        else:
+            filename = parts[1].strip()
+            cl.user_session.set("source_filter", filename)
+            await cl.Message(
+                content=f"Filter aktiv: Fragen werden nur in **{filename}** gesucht.\n"
+                        "Tippen Sie `/filter` (ohne Argument) um den Filter zurueckzusetzen."
+            ).send()
         return
 
     # Loeschbefehl: /loeschen [dateiname]
@@ -308,14 +367,22 @@ async def _run_delete_flow(filename: str) -> None:
 # ---------------------------------------------------------------
 
 async def _run_rag_flow(question: str) -> None:
-    """Frage per RAG-Pipeline beantworten.
+    """Frage per RAG-Pipeline beantworten (mit Multi-Turn-Kontext und optionalem Source-Filter).
+
+    Liest die aktive Gespraechshistorie und den Source-Filter aus der User-Session,
+    ruft pipeline.answer() auf und aktualisiert die History nach der Antwort.
 
     Args:
         question: Natuerlichsprachliche Frage des Nutzers.
     """
+    history: list[dict] = cl.user_session.get("history") or []
+    source_filter: str | None = cl.user_session.get("source_filter")
+
     async with cl.Step(name="Durchsuche Dokumente und erstelle Antwort ...") as step:
         try:
-            result = await asyncio.to_thread(answer, question)
+            result = await asyncio.to_thread(
+                answer, question, source_filter=source_filter, history=history
+            )
         except Exception as exc:
             logger.error("Pipeline error: %s", exc)
             await cl.Message(
@@ -333,6 +400,11 @@ async def _run_rag_flow(question: str) -> None:
             if found > 0
             else "Keine passenden Abschnitte gefunden."
         )
+
+    # CHAT-01: History aktualisieren
+    history.append({"role": "user", "content": question})
+    history.append({"role": "assistant", "content": result["answer"]})
+    cl.user_session.set("history", history)
 
     sources_block = ""
     if result["sources"]:

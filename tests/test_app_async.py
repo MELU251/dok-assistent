@@ -53,8 +53,12 @@ class TestRagFlowAsync:
         }
         mock_to_thread = AsyncMock(return_value=mock_result)
 
+        mock_session = MagicMock()
+        mock_session.get.return_value = []
+
         with (
             patch("app.asyncio.to_thread", mock_to_thread),
+            patch("app.cl.user_session", mock_session),
             patch("app.cl.Step") as mock_step,
             patch("app.cl.Message") as mock_message,
         ):
