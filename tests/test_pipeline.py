@@ -74,8 +74,9 @@ class TestExtractSources:
 
 
 class TestAnswer:
+    @patch("src.pipeline.get_settings")
     @patch("src.pipeline.search")
-    def test_returns_no_document_message_when_no_results(self, mock_search):
+    def test_returns_no_document_message_when_no_results(self, mock_search, mock_get_settings):
         from src.pipeline import answer
 
         mock_search.return_value = []

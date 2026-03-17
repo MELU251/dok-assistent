@@ -29,6 +29,7 @@ def _fail(label: str, reason: str = "") -> None:
 # Check 1: Ollama VPS erreichbar?
 # ---------------------------------------------------------------------------
 
+@pytest.mark.integration
 class TestOllamaConnection:
 
     def test_vps_reachable(self):
@@ -103,6 +104,7 @@ class TestOllamaConnection:
 # Check 2: Supabase erreichbar und Tabelle vorhanden?
 # ---------------------------------------------------------------------------
 
+@pytest.mark.integration
 class TestSupabaseConnection:
 
     def test_table_accessible(self):
@@ -133,6 +135,7 @@ class TestSupabaseConnection:
 # Check 3: Claude API funktionsfaehig?
 # ---------------------------------------------------------------------------
 
+@pytest.mark.integration
 class TestClaudeApi:
 
     def test_short_completion(self):

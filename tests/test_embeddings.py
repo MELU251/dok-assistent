@@ -67,6 +67,7 @@ def _estimate_cost_eur(token_count: int) -> float:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.integration
 class TestEmbeddingIntegration:
     """Live integration tests – require OPENAI_API_KEY in .env."""
 
