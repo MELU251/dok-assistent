@@ -31,11 +31,13 @@ class Settings(BaseSettings):
     supabase_service_key: str = Field(..., description="Supabase Service-Role-Key")
 
     # Datenbank-Verbindungen fuer Alembic und Chainlit
-    # Fuer Alembic (sync): postgresql://postgres:[PWD]@db.[REF].supabase.co:5432/postgres
-    # Fuer Chainlit (async): postgresql+asyncpg://postgres:[PWD]@db.[REF].supabase.co:5432/postgres
-    database_url: str = Field(..., description="Sync PostgreSQL-URL fuer Alembic-Migrationen")
+    # DATABASE_URL: Direkte Verbindung (Port 5432) – nur fuer Alembic-Migrationen noetig
+    #   postgresql://postgres:[PWD]@db.[REF].supabase.co:5432/postgres
+    # ASYNC_DATABASE_URL: Transaction Pooler (Port 6543) – fuer Chainlit-Laufzeitabfragen
+    #   postgresql+asyncpg://postgres.xxxxx:[PWD]@aws-0-xx.pooler.supabase.com:6543/postgres
+    database_url: str = Field(..., description="Sync Direct-URL (Port 5432) fuer Alembic-Migrationen")
     async_database_url: str = Field(
-        ..., description="Async PostgreSQL-URL (postgresql+asyncpg://) fuer Chainlit SQLAlchemyDataLayer"
+        ..., description="Async Pooler-URL (Port 6543, postgresql+asyncpg://) fuer Chainlit SQLAlchemyDataLayer"
     )
 
     # RAG-Parameter
@@ -69,7 +71,7 @@ class Settings(BaseSettings):
             "eyJ...",
             "http://100.x.x.x:11434",
             "postgresql://postgres:your-password@db.xxxx.supabase.co:5432/postgres",
-            "postgresql+asyncpg://postgres:your-password@db.xxxx.supabase.co:5432/postgres",
+            "postgresql+asyncpg://postgres.xxxx:your-password@aws-0-xx.pooler.supabase.com:6543/postgres",
         }
         if v in placeholders:
             raise ValueError(

@@ -140,6 +140,8 @@ jobs:
           CHAINLIT_AUTH_SECRET=${{ secrets.CHAINLIT_AUTH_SECRET }}
           CHAINLIT_USER=${{ secrets.CHAINLIT_USER }}
           CHAINLIT_PASSWORD=${{ secrets.CHAINLIT_PASSWORD }}
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          ASYNC_DATABASE_URL=${{ secrets.ASYNC_DATABASE_URL }}
           EOF
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u melu251 --password-stdin
             docker compose pull
