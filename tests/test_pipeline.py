@@ -132,3 +132,69 @@ class TestAnswer:
 
         with pytest.raises(RuntimeError, match="LLM call failed"):
             answer("Was kostet das?")
+
+
+# ---------------------------------------------------------------------------
+# TestMultiTurn — Wave 0 xfail stubs (CHAT-01)
+# ---------------------------------------------------------------------------
+
+
+class TestMultiTurn:
+    """Tests fuer Multi-Turn-Kontext in pipeline.answer() (CHAT-01)."""
+
+    @pytest.mark.xfail(strict=True, reason="history param not yet implemented")
+    @patch("src.pipeline.Anthropic")
+    @patch("src.pipeline.search")
+    @patch("src.pipeline.get_settings")
+    def test_history_injected_into_messages(self, mock_settings, mock_search, mock_anthropic_cls, mock_docs):
+        """History-Parameter wird in den messages-Parameter des Anthropic-Calls injiziert."""
+        from src.pipeline import answer
+
+        mock_settings.return_value = MagicMock(anthropic_api_key="sk-ant-test")
+        mock_search.return_value = mock_docs
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text="Antwort")]
+        mock_response.usage.input_tokens = 100
+        mock_response.usage.output_tokens = 50
+        mock_client.messages.create.return_value = mock_response
+        mock_anthropic_cls.return_value = mock_client
+
+        history = [
+            {"role": "user", "content": "Erste Frage"},
+            {"role": "assistant", "content": "Erste Antwort"},
+        ]
+        answer("Folgefrage", history=history)
+
+        call_kwargs = mock_client.messages.create.call_args
+        messages_arg = call_kwargs[1].get("messages") or call_kwargs[0][0]
+        # First message in messages must come from history
+        assert messages_arg[0]["role"] == "user"
+        assert messages_arg[0]["content"] == "Erste Frage"
+
+    @pytest.mark.xfail(strict=True, reason="history param not yet implemented")
+    @patch("src.pipeline.Anthropic")
+    @patch("src.pipeline.search")
+    @patch("src.pipeline.get_settings")
+    def test_history_window_capped_at_six(self, mock_settings, mock_search, mock_anthropic_cls, mock_docs):
+        """History-Fenster ist auf 6 Nachrichten (3 Turns) begrenzt."""
+        from src.pipeline import answer
+
+        mock_settings.return_value = MagicMock(anthropic_api_key="sk-ant-test")
+        mock_search.return_value = mock_docs
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text="Antwort")]
+        mock_response.usage.input_tokens = 100
+        mock_response.usage.output_tokens = 50
+        mock_client.messages.create.return_value = mock_response
+        mock_anthropic_cls.return_value = mock_client
+
+        # 8 messages history — should be trimmed to 6
+        history = [{"role": "user" if i % 2 == 0 else "assistant", "content": f"msg {i}"} for i in range(8)]
+        answer("Neue Frage", history=history)
+
+        call_kwargs = mock_client.messages.create.call_args
+        messages_arg = call_kwargs[1].get("messages") or call_kwargs[0][0]
+        # 6 history + 1 current question = 7 total
+        assert len(messages_arg) == 7
