@@ -45,7 +45,10 @@ Plans:
   2. Ein erfolgreicher Workflow zeigt drei separate grüne Jobs in der GitHub-Actions-UI: `test`, `build`, `deploy` mit sichtbaren `needs:`-Abhängigkeiten
   3. Nach `docker compose up -d` auf dem VPS führt der Workflow einen Health-Check durch und schlägt fehl (statt stillschweigend zu passieren), wenn der Container nicht healthy ist
   4. Tailscale-Verbindungsfehler im Deploy-Job werden mindestens einmal wiederholt, bevor der Job fehlschlägt
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 02-01-PLAN.md — Rewrite deploy.yml as three-job pipeline (test, build, deploy) with Tailscale retry and post-deploy health check
 
 ### Phase 3: Chat History and Multi-Turn Context
 **Goal**: Nutzer können ein Gespräch fortsetzen — sowohl innerhalb einer Session (KI kennt vorherige Turns) als auch über Sessions hinweg (frühere Chats sind wieder abrufbar)
