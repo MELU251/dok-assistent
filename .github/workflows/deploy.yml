@@ -16,7 +16,38 @@ env:
   IMAGE: ghcr.io/melu251/dok-assistent:latest
 
 jobs:
-  build-and-deploy:
+  # -----------------------------------------------------------------
+  # Job 1: Tests ausführen — kein Build/Deploy bei rotem Status
+  # -----------------------------------------------------------------
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Code auschecken
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: System-Abhängigkeiten installieren
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libmagic1 poppler-utils tesseract-ocr
+
+      - name: Python-Abhängigkeiten installieren
+        run: pip install -r requirements.txt
+
+      - name: Tests ausführen
+        run: pytest tests/ -v
+
+  # -----------------------------------------------------------------
+  # Job 2: Docker-Image bauen und pushen — nur wenn tests grün
+  # -----------------------------------------------------------------
+  build:
+    needs: [test]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -27,33 +58,6 @@ jobs:
       - name: Code auschecken
         uses: actions/checkout@v4
 
-      # -----------------------------------------------------------------
-      # 1. Tailscale-Verbindung aufbauen (VPS ist nur via Tailscale erreichbar)
-      #    Wichtig: native ssh/scp nutzen, nicht appleboy/* (laufen in Docker
-      #    und haben keinen Zugriff auf das Tailscale-Interface des Runners)
-      # -----------------------------------------------------------------
-      - name: Mit Tailscale verbinden
-        uses: tailscale/github-action@v2
-        with:
-          authkey: ${{ secrets.TAILSCALE_AUTH_KEY }}
-          args: --accept-routes --accept-dns
-
-      - name: VPS-Erreichbarkeit prüfen
-        run: nc -zv -w 10 ${{ secrets.VPS_HOST }} 22
-
-      # -----------------------------------------------------------------
-      # 2. SSH-Key für native ssh/scp vorbereiten
-      # -----------------------------------------------------------------
-      - name: SSH-Key einrichten
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
-
-      # -----------------------------------------------------------------
-      # 3. Docker-Image bauen und in GitHub Container Registry pushen
-      # -----------------------------------------------------------------
       - name: Docker Buildx einrichten
         uses: docker/setup-buildx-action@v3
 
@@ -73,9 +77,43 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=min
 
-      # -----------------------------------------------------------------
-      # 4. Konfigurationsdateien auf den VPS kopieren (nativ, kein Docker)
-      # -----------------------------------------------------------------
+  # -----------------------------------------------------------------
+  # Job 3: Auf VPS deployen — nur wenn build grün
+  # -----------------------------------------------------------------
+  deploy:
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Code auschecken
+        uses: actions/checkout@v4
+
+      # Tailscale v4 mit ping: — stellt sicher, dass VPS erreichbar ist
+      # bevor SSH-Schritte beginnen (Research Pitfall 1)
+      - name: Mit Tailscale verbinden
+        uses: tailscale/github-action@v4
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTH_KEY }}
+          args: --accept-routes --accept-dns
+          ping: ${{ secrets.VPS_HOST }}
+
+      - name: SSH-Key einrichten
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      # VPS-Erreichbarkeit mit Retry prüfen (CICD-03)
+      - name: VPS-Erreichbarkeit prüfen (mit Retry)
+        uses: Wandalen/wretry.action@master
+        with:
+          command: nc -zv -w 10 ${{ secrets.VPS_HOST }} 22
+          attempt_limit: 3
+          attempt_delay: 10000
+
       - name: Dateien auf VPS kopieren
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
@@ -84,16 +122,12 @@ jobs:
             docker-compose.yml \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/dok-assistent/
 
-      # -----------------------------------------------------------------
-      # 5. Auf VPS deployen: .env schreiben, Image pullen, Container starten
-      # -----------------------------------------------------------------
+      # Outer 'ENDSSH' verhindert Runner-Expansion, inneres EOF erlaubt Secret-Interpolation
       - name: Auf VPS deployen
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} bash << 'ENDSSH'
             set -e
             cd /opt/dok-assistent
-
-            # .env aus den Secrets schreiben (wird nie ins Repo committed)
             cat > .env << EOF
           ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
           OLLAMA_BASE_URL=${{ secrets.OLLAMA_BASE_URL }}
@@ -108,9 +142,30 @@ jobs:
           CHAINLIT_USER=${{ secrets.CHAINLIT_USER }}
           CHAINLIT_PASSWORD=${{ secrets.CHAINLIT_PASSWORD }}
           EOF
-
-            # Bei ghcr.io anmelden und neues Image holen
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u melu251 --password-stdin
             docker compose pull
             docker compose up -d --remove-orphans
+          ENDSSH
+
+      # Container-Health-Check: Wartet bis zu 120s (>= 20s start_period + 3*30s interval)
+      - name: Container-Health-Check
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} bash << 'ENDSSH'
+            set -e
+            MAX_WAIT=120
+            ELAPSED=0
+            CONTAINER=dok-assistent
+            echo "Warte auf Container-Health-Check (max ${MAX_WAIT}s)..."
+            while [ $ELAPSED -lt $MAX_WAIT ]; do
+              STATUS=$(docker inspect --format='{{.State.Health.Status}}' $CONTAINER 2>/dev/null || echo "not_found")
+              echo "  Status nach ${ELAPSED}s: $STATUS"
+              if [ "$STATUS" = "healthy" ]; then
+                echo "Container ist healthy."
+                exit 0
+              fi
+              sleep 10
+              ELAPSED=$((ELAPSED + 10))
+            done
+            echo "FEHLER: Container ist nach ${MAX_WAIT}s nicht healthy (Status: $STATUS)"
+            exit 1
           ENDSSH
