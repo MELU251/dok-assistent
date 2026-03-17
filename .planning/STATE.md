@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: "Checkpoint: 02-01 Task 3 human-verify — push to GitHub and verify three green job cards"
-last_updated: "2026-03-17T12:30:31.066Z"
+stopped_at: Completed 02-cicd-stabilization/02-01-PLAN.md — Phase 2 complete
+last_updated: "2026-03-17T15:29:16.937Z"
 last_activity: 2026-03-12 — Roadmap created; ready to plan Phase 1
 progress:
   total_phases: 4
@@ -54,6 +54,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 01-tech-debt-foundation P04 | 15min | 1 tasks | 2 files |
 | Phase 01-tech-debt-foundation P02 | 15min | 1 tasks | 2 files |
 | Phase 02-cicd-stabilization P01 | 2min | 2 tasks | 1 files |
+| Phase 02-cicd-stabilization P01 | 45min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,9 @@ Recent decisions affecting current work:
 - [Phase 02-cicd-stabilization]: Wandalen/wretry.action@master wraps nc check with attempt_limit=3 — replaces bare nc with no retry
 - [Phase 02-cicd-stabilization]: MAX_WAIT=120s for health check: Docker window is 20s start_period + 3x30s interval = 110s max
 - [Phase 02-cicd-stabilization]: packages:write permission only on build job; deploy job uses contents:read only
+- [Phase 02-cicd-stabilization]: tailscale/github-action@v4 sets --accept-routes/--accept-dns internally — passing them in args: causes duplicate-flag CI failure; removed after live verification
+- [Phase 02-cicd-stabilization]: Integration tests excluded in CI via pytest -m 'not integration' — live Ollama/Supabase unavailable in GitHub-hosted runners
+- [Phase 02-cicd-stabilization]: get_settings mock added to test_ingest.py — embed_and_store() calls get_settings() directly for log message, not via singleton getter
 
 ### Pending Todos
 
@@ -89,6 +93,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T12:30:31.063Z
-Stopped at: Checkpoint: 02-01 Task 3 human-verify — push to GitHub and verify three green job cards
+Last session: 2026-03-17T15:29:16.934Z
+Stopped at: Completed 02-cicd-stabilization/02-01-PLAN.md — Phase 2 complete
 Resume file: None
