@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 03-chat-history-and-multi-turn-context/03-03-PLAN.md
-last_updated: "2026-03-17T17:18:33.554Z"
+stopped_at: "Checkpoint reached: 03-chat-history-and-multi-turn-context/03-05-PLAN.md Task 2 (human-verify)"
+last_updated: "2026-03-17T17:30:31.700Z"
 last_activity: 2026-03-12 — Roadmap created; ready to plan Phase 1
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
   percent: 25
 ---
 
@@ -59,6 +59,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 03-chat-history-and-multi-turn-context P04 | 12min | 1 tasks | 3 files |
 | Phase 03-chat-history-and-multi-turn-context P02 | 4min | 2 tasks | 7 files |
 | Phase 03-chat-history-and-multi-turn-context P03 | 5min | 1 tasks | 2 files |
+| Phase 03-chat-history-and-multi-turn-context P05 | 15min | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,9 @@ Recent decisions affecting current work:
 - [Phase 03-chat-history-and-multi-turn-context]: DATABASE_URL (sync postgresql://) for Alembic, ASYNC_DATABASE_URL (postgresql+asyncpg://) for Chainlit SQLAlchemyDataLayer — separate env vars required
 - [Phase 03-chat-history-and-multi-turn-context]: source_filter is a client-side post-filter on RPC results (not DB-side) — avoids schema changes, match_count tripled to compensate
 - [Phase 03-chat-history-and-multi-turn-context]: Retrieval unit tests must mock get_settings alongside _get_embedder/_get_supabase_client — get_settings() called directly in search() for top_k_results
+- [Phase 03-chat-history-and-multi-turn-context]: Chainlit user_message steps use 'input' field not 'output' — on_chat_resume uses step.get('input', '') for user turns
+- [Phase 03-chat-history-and-multi-turn-context]: History windowing [-6:] stays in pipeline.answer(); _run_rag_flow passes full session history without slicing
+- [Phase 03-chat-history-and-multi-turn-context]: test_data_layer.py xfail kept — @cl.data_layer decorator means get_data_layer() takes no params; test signature mismatch left for future cleanup
 
 ### Pending Todos
 
@@ -108,6 +112,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T17:18:33.552Z
-Stopped at: Completed 03-chat-history-and-multi-turn-context/03-03-PLAN.md
+Last session: 2026-03-17T17:30:31.697Z
+Stopped at: Checkpoint reached: 03-chat-history-and-multi-turn-context/03-05-PLAN.md Task 2 (human-verify)
 Resume file: None
