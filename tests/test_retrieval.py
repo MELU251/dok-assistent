@@ -17,13 +17,14 @@ from langchain_core.documents import Document
 class TestSearch:
     """Tests fuer die grundlegende Suche und Metadaten-Zuordnung."""
 
-    @pytest.mark.xfail(strict=True, reason="metadata bug not yet fixed")
+    @patch("src.retrieval.get_settings")
     @patch("src.retrieval._get_supabase_client")
     @patch("src.retrieval._get_embedder")
-    def test_returns_documents_with_populated_metadata(self, mock_get_embedder, mock_get_client):
+    def test_returns_documents_with_populated_metadata(self, mock_get_embedder, mock_get_client, mock_get_settings):
         """search() gibt Dokumente mit korrekten Metadaten (source, page) zurueck."""
         from src.retrieval import search
 
+        mock_get_settings.return_value = MagicMock(top_k_results=4)
         mock_embedder = MagicMock()
         mock_embedder.embed_query.return_value = [0.1] * 768
         mock_get_embedder.return_value = mock_embedder
@@ -57,13 +58,14 @@ class TestSearch:
 class TestSourceFilter:
     """Tests fuer den source_filter-Parameter in retrieval.search()."""
 
-    @pytest.mark.xfail(strict=True, reason="source_filter param not yet implemented")
+    @patch("src.retrieval.get_settings")
     @patch("src.retrieval._get_supabase_client")
     @patch("src.retrieval._get_embedder")
-    def test_source_filter_returns_only_matching_docs(self, mock_get_embedder, mock_get_client):
+    def test_source_filter_returns_only_matching_docs(self, mock_get_embedder, mock_get_client, mock_get_settings):
         """search() mit source_filter gibt nur Dokumente der angegebenen Quelle zurueck."""
         from src.retrieval import search
 
+        mock_get_settings.return_value = MagicMock(top_k_results=4)
         mock_embedder = MagicMock()
         mock_embedder.embed_query.return_value = [0.1] * 768
         mock_get_embedder.return_value = mock_embedder
@@ -82,13 +84,14 @@ class TestSourceFilter:
         assert all(doc.metadata["source"] == "a.pdf" for doc in docs)
         assert len(docs) == 1
 
-    @pytest.mark.xfail(strict=True, reason="source_filter param not yet implemented")
+    @patch("src.retrieval.get_settings")
     @patch("src.retrieval._get_supabase_client")
     @patch("src.retrieval._get_embedder")
-    def test_source_filter_requests_triple_match_count(self, mock_get_embedder, mock_get_client):
+    def test_source_filter_requests_triple_match_count(self, mock_get_embedder, mock_get_client, mock_get_settings):
         """search() mit source_filter ruft RPC mit match_count = top_k_results * 3 auf."""
         from src.retrieval import search
 
+        mock_get_settings.return_value = MagicMock(top_k_results=4)
         mock_embedder = MagicMock()
         mock_embedder.embed_query.return_value = [0.1] * 768
         mock_get_embedder.return_value = mock_embedder

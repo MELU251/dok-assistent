@@ -12,8 +12,8 @@ from src.retrieval import search
 
 logger = logging.getLogger(__name__)
 
-# Prompt template from CLAUDE.md
-_SYSTEM_PROMPT = """Du bist ein hilfreicher Assistent für das Unternehmen. Beantworte die Frage \
+# Prompt-Template: Kontext geht in system, Frage in messages (CHAT-01)
+_SYSTEM_PROMPT_TEMPLATE = """Du bist ein hilfreicher Assistent für das Unternehmen. Beantworte die Frage \
 ausschließlich auf Basis der folgenden Dokumenten-Auszüge.
 
 Wenn die Antwort nicht in den Dokumenten gefunden werden kann, sage klar:
@@ -23,9 +23,7 @@ Nenne am Ende deiner Antwort immer die Quellen im Format:
 📄 Quelle: [Dateiname], Seite [X]
 
 Dokumente:
-{context}
-
-Frage: {question}"""
+{context}"""
 
 # Cost estimates for claude-sonnet-4-6 (USD per 1M tokens, 2024 pricing)
 _INPUT_COST_PER_1M = 3.0
@@ -88,7 +86,12 @@ def _estimate_cost(input_tokens: int, output_tokens: int) -> float:
     return cost_usd * _USD_TO_EUR
 
 
-def answer(question: str, tenant_id: str = "default") -> dict[str, Any]:
+def answer(
+    question: str,
+    tenant_id: str = "default",
+    source_filter: str | None = None,
+    history: list[dict] | None = None,
+) -> dict[str, Any]:
     """Answer a question using retrieved document context via Claude.
 
     Retrieves relevant chunks, builds the RAG prompt, calls
@@ -97,6 +100,9 @@ def answer(question: str, tenant_id: str = "default") -> dict[str, Any]:
     Args:
         question: Natural language question from the user.
         tenant_id: Tenant identifier to scope the document search.
+        source_filter: Optionaler Dateiname zur Eingrenzung der Suche auf ein Dokument.
+        history: Optionale Gespraechshistorie als Liste von role/content-Dicts.
+                 Maximal die letzten 6 Eintraege werden verwendet (3 Turns).
 
     Returns:
         Dictionary with keys:
@@ -110,9 +116,9 @@ def answer(question: str, tenant_id: str = "default") -> dict[str, Any]:
     settings = get_settings()
     start_time = time.monotonic()
 
-    # Step 1: Retrieve relevant chunks
+    # Schritt 1: Relevante Chunks abrufen
     logger.info("Retrieving context for question (tenant=%s)", tenant_id)
-    docs = search(question, tenant_id=tenant_id)
+    docs = search(question, tenant_id=tenant_id, source_filter=source_filter)
 
     if not docs:
         logger.warning("No relevant documents found for query.")
@@ -122,18 +128,24 @@ def answer(question: str, tenant_id: str = "default") -> dict[str, Any]:
             "cost_eur": 0.0,
         }
 
-    # Step 2: Build prompt
-    context = _build_context(docs)
-    prompt = _SYSTEM_PROMPT.format(context=context, question=question)
+    # Schritt 2: System-Prompt mit Dokumentenkontext aufbauen
+    context_str = _build_context(docs)
+    system_content = _SYSTEM_PROMPT_TEMPLATE.format(context=context_str)
 
-    # Step 3: Call Claude
-    logger.info("Calling Claude claude-sonnet-4-6...")
+    # Schritt 3: Nachrichtenliste aufbauen (History-Fenster + aktuelle Frage)
+    # CHAT-01: Letzte 3 Turns (6 Messages) aus der History
+    window = (history or [])[-6:]
+    messages = window + [{"role": "user", "content": question}]
+
+    # Schritt 4: Claude aufrufen
+    logger.info("Rufe Claude claude-sonnet-4-6 auf...")
     try:
         client = Anthropic(api_key=settings.anthropic_api_key)
         response = client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=1024,
-            messages=[{"role": "user", "content": prompt}],
+            system=system_content,
+            messages=messages,
         )
     except Exception as exc:
         logger.error("Claude API call failed: %s", exc)

@@ -142,7 +142,6 @@ class TestAnswer:
 class TestMultiTurn:
     """Tests fuer Multi-Turn-Kontext in pipeline.answer() (CHAT-01)."""
 
-    @pytest.mark.xfail(strict=True, reason="history param not yet implemented")
     @patch("src.pipeline.Anthropic")
     @patch("src.pipeline.search")
     @patch("src.pipeline.get_settings")
@@ -172,7 +171,6 @@ class TestMultiTurn:
         assert messages_arg[0]["role"] == "user"
         assert messages_arg[0]["content"] == "Erste Frage"
 
-    @pytest.mark.xfail(strict=True, reason="history param not yet implemented")
     @patch("src.pipeline.Anthropic")
     @patch("src.pipeline.search")
     @patch("src.pipeline.get_settings")
