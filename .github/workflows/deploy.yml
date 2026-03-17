@@ -96,7 +96,6 @@ jobs:
         uses: tailscale/github-action@v4
         with:
           authkey: ${{ secrets.TAILSCALE_AUTH_KEY }}
-          args: --accept-routes --accept-dns
           ping: ${{ secrets.VPS_HOST }}
 
       - name: SSH-Key einrichten
