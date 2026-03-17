@@ -29,7 +29,11 @@ def _get_supabase_client():
     return create_client(settings.supabase_url, settings.supabase_service_key)
 
 
-def search(query: str, tenant_id: str = "default") -> list[Document]:
+def search(
+    query: str,
+    tenant_id: str = "default",
+    source_filter: str | None = None,
+) -> list[Document]:
     """Die relevantesten Dokument-Chunks fuer eine Anfrage abrufen.
 
     Bettet die Anfrage via Ollama ein und ruft die match_document_chunks-RPC-Funktion
@@ -39,6 +43,8 @@ def search(query: str, tenant_id: str = "default") -> list[Document]:
     Args:
         query: Natuerlichsprachliche Frage oder Suchbegriff.
         tenant_id: Mandanten-ID zur Eingrenzung der Suche.
+        source_filter: Optionaler Dateiname zur Eingrenzung der Suche auf ein Dokument.
+                       Wird als Post-Filter nach dem RPC-Aufruf angewendet.
 
     Returns:
         Liste von bis zu TOP_K_RESULTS Document-Objekten mit Metadaten.
@@ -47,7 +53,7 @@ def search(query: str, tenant_id: str = "default") -> list[Document]:
         RuntimeError: Wenn Embedding oder Vektorsuche fehlschlagen.
     """
     settings = get_settings()
-    logger.debug("Searching (tenant=%s): %s", tenant_id, query[:80])
+    logger.debug("Searching (tenant=%s, source_filter=%s): %s", tenant_id, source_filter, query[:80])
 
     # Schritt 1: Query einbetten
     try:
@@ -58,13 +64,15 @@ def search(query: str, tenant_id: str = "default") -> list[Document]:
         raise RuntimeError(f"Embedding fehlgeschlagen: {exc}") from exc
 
     # Schritt 2: RPC-Funktion direkt aufrufen
+    # Bei source_filter mehr Kandidaten anfordern, da Post-Filterung Treffer reduziert
+    match_count = settings.top_k_results * 3 if source_filter else settings.top_k_results
     try:
         client = _get_supabase_client()
         response = client.rpc(
             "match_document_chunks",
             {
                 "query_embedding": query_vector,
-                "match_count": settings.top_k_results,
+                "match_count": match_count,
                 "filter": {"tenant_id": tenant_id},
             },
         ).execute()
@@ -72,14 +80,23 @@ def search(query: str, tenant_id: str = "default") -> list[Document]:
         logger.error("Supabase RPC failed: %s", exc)
         raise RuntimeError(f"Suche fehlgeschlagen: {exc}") from exc
 
-    # Schritt 3: Zeilen in LangChain-Documents umwandeln
+    # Schritt 3: Zeilen in LangChain-Documents umwandeln (Metadaten aus Top-Level-Spalten)
     docs = [
         Document(
             page_content=row["content"],
-            metadata=row.get("metadata", {}),
+            metadata={
+                "source": row.get("source", "unknown"),
+                "page": row.get("page", 0),
+                "tenant_id": row.get("tenant_id", "default"),
+            },
         )
         for row in (response.data or [])
     ]
+
+    # Schritt 4: Post-Filter nach Quelle und Ergebnis auf top_k_results begrenzen
+    if source_filter:
+        docs = [d for d in docs if d.metadata.get("source") == source_filter]
+        docs = docs[: settings.top_k_results]
 
     logger.info("Retrieved %d chunks (tenant=%s)", len(docs), tenant_id)
     return docs
