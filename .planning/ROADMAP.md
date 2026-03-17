@@ -13,7 +13,7 @@ Der PoC ist technisch funktionsfähig. Dieser Milestone bringt das Produkt auf P
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Tech Debt Foundation** - Stabiles, concurrent-sicheres Fundament als Voraussetzung für alle weiteren Features (completed 2026-03-16)
-- [ ] **Phase 2: CI/CD Stabilization** - Drei-Job-Pipeline (test → build → deploy) mit Pytest-Gate und Post-Deploy-Health-Check
+- [x] **Phase 2: CI/CD Stabilization** - Drei-Job-Pipeline (test → build → deploy) mit Pytest-Gate und Post-Deploy-Health-Check (completed 2026-03-17)
 - [ ] **Phase 3: Chat History and Multi-Turn Context** - Persistente Gesprächs-Sessions und Multi-Turn-Kontext als table-stakes Pilot-Features
 - [ ] **Phase 4: UI/UX Polish** - Professioneller Ersteindruck: Onboarding, Dokument-Inventar, deutsche Fehlermeldungen, prominente Quellenangaben
 
@@ -79,6 +79,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Tech Debt Foundation | 4/4 | Complete    | 2026-03-16 |
-| 2. CI/CD Stabilization | 0/TBD | Not started | - |
+| 2. CI/CD Stabilization | 1/1 | Complete   | 2026-03-17 |
 | 3. Chat History and Multi-Turn Context | 0/TBD | Not started | - |
 | 4. UI/UX Polish | 0/TBD | Not started | - |

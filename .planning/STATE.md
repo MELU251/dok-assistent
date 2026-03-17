@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-tech-debt-foundation/01-02-PLAN.md
-last_updated: "2026-03-16T21:02:24.663Z"
+stopped_at: "Checkpoint: 02-01 Task 3 human-verify — push to GitHub and verify three green job cards"
+last_updated: "2026-03-17T12:30:31.066Z"
 last_activity: 2026-03-12 — Roadmap created; ready to plan Phase 1
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 2
+  total_plans: 5
+  completed_plans: 5
   percent: 25
 ---
 
@@ -53,6 +53,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 01-tech-debt-foundation P01 | 5min | 2 tasks | 6 files |
 | Phase 01-tech-debt-foundation P04 | 15min | 1 tasks | 2 files |
 | Phase 01-tech-debt-foundation P02 | 15min | 1 tasks | 2 files |
+| Phase 02-cicd-stabilization P01 | 2min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,10 @@ Recent decisions affecting current work:
 - [Phase 01-tech-debt-foundation]: local_file.unlink() called BEFORE delete_document to ensure file-first atomic delete order (TECH-05)
 - [Phase 01-tech-debt-foundation]: get_settings() still called directly in embed_and_store() for log message — test must mock get_settings alongside _get_embedder/_get_supabase_client
 - [Phase 01-tech-debt-foundation]: Patch target is getter function (_get_embedder) not class (OllamaEmbeddings) when lru_cache is in the call chain — avoids cached real instance in tests
+- [Phase 02-cicd-stabilization]: tailscale/github-action@v4 used (not v2): v4 adds ping: pre-flight for VPS reachability before SSH
+- [Phase 02-cicd-stabilization]: Wandalen/wretry.action@master wraps nc check with attempt_limit=3 — replaces bare nc with no retry
+- [Phase 02-cicd-stabilization]: MAX_WAIT=120s for health check: Docker window is 20s start_period + 3x30s interval = 110s max
+- [Phase 02-cicd-stabilization]: packages:write permission only on build job; deploy job uses contents:read only
 
 ### Pending Todos
 
@@ -84,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T20:57:10.355Z
-Stopped at: Completed 01-tech-debt-foundation/01-02-PLAN.md
+Last session: 2026-03-17T12:30:31.063Z
+Stopped at: Checkpoint: 02-01 Task 3 human-verify — push to GitHub and verify three green job cards
 Resume file: None

@@ -17,9 +17,9 @@ Requirements für den Pilot-Launch. Jedes Requirement mappt auf eine Roadmap-Pha
 
 ### CI/CD
 
-- [ ] **CICD-01**: pytest-Schritt läuft als eigener GitHub-Actions-Job vor Build und Deploy – fehlgeschlagene Tests blockieren das Deployment
-- [ ] **CICD-02**: Workflow ist in separate Jobs aufgeteilt: `test → build → deploy` mit expliziten `needs:`-Abhängigkeiten
-- [ ] **CICD-03**: Tailscale-Verbindung im Deploy-Job hat Retry-Logik; nach `docker compose up -d` wird ein Container-Health-Check ausgeführt
+- [x] **CICD-01**: pytest-Schritt läuft als eigener GitHub-Actions-Job vor Build und Deploy – fehlgeschlagene Tests blockieren das Deployment
+- [x] **CICD-02**: Workflow ist in separate Jobs aufgeteilt: `test → build → deploy` mit expliziten `needs:`-Abhängigkeiten
+- [x] **CICD-03**: Tailscale-Verbindung im Deploy-Job hat Retry-Logik; nach `docker compose up -d` wird ein Container-Health-Check ausgeführt
 
 ### Chat & Kontext
 
@@ -76,9 +76,9 @@ Welche Phasen welche Requirements abdecken.
 | TECH-03 | Phase 1 | Complete |
 | TECH-04 | Phase 1 | Complete |
 | TECH-05 | Phase 1 | Complete |
-| CICD-01 | Phase 2 | Pending |
-| CICD-02 | Phase 2 | Pending |
-| CICD-03 | Phase 2 | Pending |
+| CICD-01 | Phase 2 | Complete |
+| CICD-02 | Phase 2 | Complete |
+| CICD-03 | Phase 2 | Complete |
 | CHAT-01 | Phase 3 | Pending |
 | CHAT-02 | Phase 3 | Pending |
 | CHAT-03 | Phase 3 | Pending |
