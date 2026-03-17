@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     supabase_url: str = Field(..., description="Supabase Projekt-URL")
     supabase_service_key: str = Field(..., description="Supabase Service-Role-Key")
 
+    # Datenbank-Verbindungen fuer Alembic und Chainlit
+    # Fuer Alembic (sync): postgresql://postgres:[PWD]@db.[REF].supabase.co:5432/postgres
+    # Fuer Chainlit (async): postgresql+asyncpg://postgres:[PWD]@db.[REF].supabase.co:5432/postgres
+    database_url: str = Field(..., description="Sync PostgreSQL-URL fuer Alembic-Migrationen")
+    async_database_url: str = Field(
+        ..., description="Async PostgreSQL-URL (postgresql+asyncpg://) fuer Chainlit SQLAlchemyDataLayer"
+    )
+
     # RAG-Parameter
     chunk_size: int = Field(500, description="Chunk-Größe in Tokens")
     chunk_overlap: int = Field(50, description="Überlappung zwischen Chunks in Tokens")
@@ -44,7 +52,14 @@ class Settings(BaseSettings):
     # App
     log_level: str = Field("INFO", description="Logging-Level")
 
-    @field_validator("anthropic_api_key", "supabase_url", "supabase_service_key", "ollama_base_url")
+    @field_validator(
+        "anthropic_api_key",
+        "supabase_url",
+        "supabase_service_key",
+        "ollama_base_url",
+        "database_url",
+        "async_database_url",
+    )
     @classmethod
     def must_not_be_placeholder(cls, v: str, info) -> str:
         """Platzhalter-Werte aus .env.example ablehnen."""
@@ -53,6 +68,8 @@ class Settings(BaseSettings):
             "https://xxxx.supabase.co",
             "eyJ...",
             "http://100.x.x.x:11434",
+            "postgresql://postgres:your-password@db.xxxx.supabase.co:5432/postgres",
+            "postgresql+asyncpg://postgres:your-password@db.xxxx.supabase.co:5432/postgres",
         }
         if v in placeholders:
             raise ValueError(
