@@ -23,9 +23,9 @@ Requirements für den Pilot-Launch. Jedes Requirement mappt auf eine Roadmap-Pha
 
 ### Chat & Kontext
 
-- [ ] **CHAT-01**: Im laufenden Gespräch kennt die KI die letzten 3 Gesprächs-Turns (6 Messages) als Kontext – Folgefragen werden korrekt beantwortet
-- [ ] **CHAT-02**: Nutzer sieht nach dem Login eine Liste seiner früheren Chat-Sessions und kann eine davon wieder öffnen (persistiert in Supabase)
-- [ ] **CHAT-03**: Nutzer kann Fragen auf ein bestimmtes hochgeladenes Dokument eingrenzen (Filter in der UI, der `source` an `retrieval.search()` weitergibt)
+- [x] **CHAT-01**: Im laufenden Gespräch kennt die KI die letzten 3 Gesprächs-Turns (6 Messages) als Kontext – Folgefragen werden korrekt beantwortet
+- [x] **CHAT-02**: Nutzer sieht nach dem Login eine Liste seiner früheren Chat-Sessions und kann eine davon wieder öffnen (persistiert in Supabase)
+- [x] **CHAT-03**: Nutzer kann Fragen auf ein bestimmtes hochgeladenes Dokument eingrenzen (Filter in der UI, der `source` an `retrieval.search()` weitergibt)
 
 ### UI/UX
 
@@ -79,9 +79,9 @@ Welche Phasen welche Requirements abdecken.
 | CICD-01 | Phase 2 | Complete |
 | CICD-02 | Phase 2 | Complete |
 | CICD-03 | Phase 2 | Complete |
-| CHAT-01 | Phase 3 | Pending |
-| CHAT-02 | Phase 3 | Pending |
-| CHAT-03 | Phase 3 | Pending |
+| CHAT-01 | Phase 3 | Complete |
+| CHAT-02 | Phase 3 | Complete |
+| CHAT-03 | Phase 3 | Complete |
 | UI-01 | Phase 4 | Pending |
 | UI-02 | Phase 4 | Pending |
 | UI-03 | Phase 4 | Pending |

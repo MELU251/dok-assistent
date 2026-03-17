@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-cicd-stabilization/02-01-PLAN.md — Phase 2 complete
-last_updated: "2026-03-17T15:35:32.016Z"
+stopped_at: Completed 03-chat-history-and-multi-turn-context/03-01-PLAN.md
+last_updated: "2026-03-17T17:11:16.034Z"
 last_activity: 2026-03-12 — Roadmap created; ready to plan Phase 1
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 10
+  completed_plans: 6
   percent: 25
 ---
 
@@ -55,6 +55,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 01-tech-debt-foundation P02 | 15min | 1 tasks | 2 files |
 | Phase 02-cicd-stabilization P01 | 2min | 2 tasks | 1 files |
 | Phase 02-cicd-stabilization P01 | 45min | 3 tasks | 2 files |
+| Phase 03-chat-history-and-multi-turn-context P01 | 10min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,8 @@ Recent decisions affecting current work:
 - [Phase 02-cicd-stabilization]: tailscale/github-action@v4 sets --accept-routes/--accept-dns internally — passing them in args: causes duplicate-flag CI failure; removed after live verification
 - [Phase 02-cicd-stabilization]: Integration tests excluded in CI via pytest -m 'not integration' — live Ollama/Supabase unavailable in GitHub-hosted runners
 - [Phase 02-cicd-stabilization]: get_settings mock added to test_ingest.py — embed_and_store() calls get_settings() directly for log message, not via singleton getter
+- [Phase 03-chat-history-and-multi-turn-context]: xfail(strict=True) used for all Wave 0 stubs — accidental pass-through causes test error, preventing false greens
+- [Phase 03-chat-history-and-multi-turn-context]: test_migrations.py uses pytestmark = pytest.mark.integration to auto-exclude from CI non-integration runs
 
 ### Pending Todos
 
@@ -93,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T15:29:16.934Z
-Stopped at: Completed 02-cicd-stabilization/02-01-PLAN.md — Phase 2 complete
+Last session: 2026-03-17T17:11:16.031Z
+Stopped at: Completed 03-chat-history-and-multi-turn-context/03-01-PLAN.md
 Resume file: None
