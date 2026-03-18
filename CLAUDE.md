@@ -91,6 +91,7 @@ dok-assistent/
 - **Fehlerbehandlung**: Alle externen Calls (Claude API, Supabase, Ollama) mit try/except
 - **Logging**: `logging` statt `print()`, Level INFO für normale Ops
 - **Secrets**: Niemals IPs oder Keys im Code – immer `.env`
+- **Git**: Regelmäßig committen, klare Messages, Branches für Features, kein sensibler Daten-Commit, pushe auch selbst
 
 ### Python-Stil
 - Type Hints überall

@@ -134,7 +134,7 @@ def answer(
 
     # Schritt 3: Nachrichtenliste aufbauen (History-Fenster + aktuelle Frage)
     # CHAT-01: Letzte 3 Turns (6 Messages) aus der History
-    window = (history or [])[-6:]
+    window = [m for m in (history or [])[-6:] if (m.get("content") or "").strip()]
     messages = window + [{"role": "user", "content": question}]
 
     # Schritt 4: Claude aufrufen

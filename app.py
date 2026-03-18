@@ -268,9 +268,13 @@ async def on_chat_resume(thread: ThreadDict) -> None:
     history: list[dict] = []
     for step in thread.get("steps", []):
         if step.get("type") == "user_message":
-            history.append({"role": "user", "content": step.get("input", "")})
+            content = step.get("input") or ""
+            if content.strip():
+                history.append({"role": "user", "content": content})
         elif step.get("type") == "assistant_message":
-            history.append({"role": "assistant", "content": step.get("output", "")})
+            content = step.get("output") or ""
+            if content.strip():
+                history.append({"role": "assistant", "content": content})
     cl.user_session.set("history", history)
     logger.info(
         "Chat wieder aufgenommen: %d Nachrichten aus History wiederhergestellt",
