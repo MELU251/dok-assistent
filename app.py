@@ -21,7 +21,6 @@ from src.config import get_settings
 from src.ingest import chunk_document, delete_document, embed_and_store, load_document
 from src.pipeline import answer
 from src.retrieval import get_indexed_documents
-from src.workflow import create_angebotsentwurf
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
 from chainlit.types import ThreadDict
 
@@ -60,6 +59,110 @@ def get_data_layer() -> SQLAlchemyDataLayer:
         ssl_require=True,
         show_logger=False,
     )
+
+
+# ---------------------------------------------------------------
+# Datenbank-Migration
+# ---------------------------------------------------------------
+
+_CHAINLIT_SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS users (
+    "id"         UUID PRIMARY KEY,
+    "identifier" TEXT NOT NULL UNIQUE,
+    "metadata"   JSONB NOT NULL DEFAULT '{}',
+    "createdAt"  TEXT
+);
+
+CREATE TABLE IF NOT EXISTS threads (
+    "id"             TEXT PRIMARY KEY,
+    "createdAt"      TEXT,
+    "name"           TEXT,
+    "userId"         UUID REFERENCES users("id") ON DELETE SET NULL,
+    "userIdentifier" TEXT,
+    "tags"           TEXT[],
+    "metadata"       JSONB
+);
+
+CREATE TABLE IF NOT EXISTS steps (
+    "id"           TEXT PRIMARY KEY,
+    "name"         TEXT NOT NULL,
+    "type"         TEXT NOT NULL,
+    "threadId"     TEXT NOT NULL REFERENCES threads("id") ON DELETE CASCADE,
+    "parentId"     TEXT,
+    "command"      TEXT,
+    "streaming"    BOOLEAN NOT NULL DEFAULT FALSE,
+    "waitForAnswer" BOOLEAN,
+    "isError"      BOOLEAN,
+    "metadata"     JSONB,
+    "tags"         TEXT[],
+    "input"        TEXT,
+    "output"       TEXT,
+    "createdAt"    TEXT,
+    "start"        TEXT,
+    "end"          TEXT,
+    "generation"   JSONB,
+    "showInput"    TEXT,
+    "defaultOpen"  BOOLEAN,
+    "autoCollapse" BOOLEAN,
+    "language"     TEXT
+);
+
+CREATE TABLE IF NOT EXISTS elements (
+    "id"           TEXT PRIMARY KEY,
+    "threadId"     TEXT,
+    "type"         TEXT,
+    "chainlitKey"  TEXT,
+    "path"         TEXT,
+    "url"          TEXT,
+    "objectKey"    TEXT,
+    "name"         TEXT NOT NULL,
+    "display"      TEXT,
+    "size"         TEXT,
+    "language"     TEXT,
+    "page"         INT,
+    "props"        JSONB,
+    "autoPlay"     BOOLEAN,
+    "playerConfig" JSONB,
+    "forId"        TEXT,
+    "mime"         TEXT
+);
+
+CREATE TABLE IF NOT EXISTS feedbacks (
+    "id"       TEXT PRIMARY KEY,
+    "forId"    TEXT NOT NULL,
+    "threadId" TEXT NOT NULL REFERENCES threads("id") ON DELETE CASCADE,
+    "value"    FLOAT NOT NULL,
+    "comment"  TEXT
+);
+"""
+
+
+@cl.on_app_startup
+async def on_app_startup() -> None:
+    """Chainlit-Datenbanktabellen anlegen falls sie noch nicht existieren.
+
+    Wird einmalig beim App-Start ausgefuehrt. Idempotent durch IF NOT EXISTS.
+    """
+    import ssl as _ssl
+    import asyncpg
+
+    settings = get_settings()
+    conninfo = settings.async_database_url
+    conninfo = conninfo.replace("?pgbouncer=true", "").replace("&pgbouncer=true", "")
+
+    ctx = _ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = _ssl.CERT_NONE
+
+    try:
+        conn = await asyncpg.connect(dsn=conninfo, ssl=ctx)
+        try:
+            await conn.execute(_CHAINLIT_SCHEMA_SQL)
+            logger.info("Datenbank-Migration erfolgreich abgeschlossen.")
+        finally:
+            await conn.close()
+    except Exception as exc:
+        logger.error("Datenbank-Migration fehlgeschlagen: %s", exc)
 
 
 # ---------------------------------------------------------------
