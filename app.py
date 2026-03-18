@@ -21,6 +21,7 @@ from src.config import get_settings
 from src.ingest import chunk_document, delete_document, embed_and_store, load_document
 from src.pipeline import answer
 from src.retrieval import get_indexed_documents
+from src.workflow import create_angebotsentwurf
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
 from chainlit.types import ThreadDict
 
@@ -84,6 +85,18 @@ def auth_callback(username: str, password: str) -> Optional[cl.User]:
 # Hilfsfunktionen
 # ---------------------------------------------------------------
 
+async def _deliver_file(path: Path, display_name: str, message: str) -> None:
+    """Datei als Download-Element an den Nutzer schicken.
+
+    Args:
+        path: Absoluter Pfad zur erzeugten Datei.
+        display_name: Angezeigter Dateiname im Chat.
+        message: Begleittext zur Download-Nachricht.
+    """
+    file_elem = cl.File(name=display_name, path=str(path), display="inline")
+    await cl.Message(content=message, elements=[file_elem]).send()
+
+
 def _build_welcome_content() -> str:
     """Willkommensnachricht mit Liste indexierter Dokumente aufbauen."""
     docs = get_indexed_documents()
@@ -106,6 +119,7 @@ def _build_welcome_content() -> str:
         "---\n"
         "**Aktionen:**\n"
         "- Klicken Sie **Dokument hochladen** um eine neue Datei zu indexieren\n"
+        "- Klicken Sie **Angebotsentwurf erstellen** um aus einem Lastenheft einen Entwurf zu erzeugen\n"
         "- Stellen Sie einfach eine Frage um die Dokumente zu durchsuchen\n"
         "- Tippen Sie `/loeschen [dateiname]` um ein Dokument zu entfernen"
     )
@@ -125,7 +139,12 @@ async def on_chat_start() -> None:
                 name="start_upload",
                 label="Dokument hochladen",
                 payload={"action": "upload"},
-            )
+            ),
+            cl.Action(
+                name="start_workflow",
+                label="Angebotsentwurf erstellen",
+                payload={"action": "workflow"},
+            ),
         ],
     ).send()
 
@@ -157,6 +176,34 @@ async def on_chat_resume(thread: ThreadDict) -> None:
 async def on_upload_action(action: cl.Action) -> None:
     """Upload-Dialog oeffnen wenn der Nutzer den Upload-Button klickt."""
     await _run_upload_flow()
+
+
+@cl.action_callback("start_workflow")
+async def on_workflow_action(action: cl.Action) -> None:
+    """Angebotsentwurf-Workflow starten wenn der Nutzer den Workflow-Button klickt."""
+    await _run_workflow_flow()
+
+
+@cl.action_callback("confirm_workflow")
+async def on_workflow_confirm(action: cl.Action) -> None:
+    """Angebotsentwurf-Generierung bestaetigen nach Verifikationsschritt."""
+    pending = cl.user_session.get("pending_workflow")
+    if not pending:
+        await cl.Message(content="Kein ausstehender Workflow gefunden.").send()
+        return
+    cl.user_session.set("pending_workflow", None)
+    await _run_workflow_generation(
+        pending["file_path"],
+        pending["filename"],
+        pending["angebot_data"],
+    )
+
+
+@cl.action_callback("cancel_workflow")
+async def on_workflow_cancel(action: cl.Action) -> None:
+    """Angebotsentwurf-Workflow abbrechen."""
+    cl.user_session.set("pending_workflow", None)
+    await cl.Message(content="Workflow abgebrochen.").send()
 
 
 @cl.on_message
@@ -417,3 +464,189 @@ async def _run_rag_flow(question: str) -> None:
     await cl.Message(
         content=result["answer"] + sources_block + cost_note
     ).send()
+
+
+# ---------------------------------------------------------------
+# Workflow-Flow (Angebotsentwurf)
+# ---------------------------------------------------------------
+
+_WORKFLOW_ACCEPTED_TYPES = [
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+]
+
+
+async def _run_workflow_flow() -> None:
+    """Workflow-Einstieg: Lastenheft anfordern und Anforderungen extrahieren.
+
+    Schritt 1 von 3: Lastenheft hochladen.
+    Schritt 2 von 3: Extraktion und Verifikation.
+    Schritt 3 von 3 (nach Bestaetigung): Generierung und Download.
+    """
+    await cl.Message(
+        content=(
+            "**Angebotsentwurf erstellen — Schritt 1/3**\n\n"
+            "Bitte laden Sie das Lastenheft hoch (PDF oder DOCX):"
+        )
+    ).send()
+
+    response = await cl.AskFileMessage(
+        content="Lastenheft hochladen (PDF oder DOCX, max. 50 MB):",
+        accept=_WORKFLOW_ACCEPTED_TYPES,
+        max_size_mb=_MAX_SIZE_MB,
+        timeout=300,
+    ).send()
+
+    if not response:
+        return
+
+    uploaded = response[0] if isinstance(response, list) else response
+    filename = uploaded.name
+    suffix = Path(filename).suffix.lower()
+
+    if suffix not in (".pdf", ".docx"):
+        await cl.Message(
+            content=(
+                f"Nicht unterstuetztes Dateiformat: '{suffix}'.\n"
+                "Bitte laden Sie eine PDF- oder DOCX-Datei hoch."
+            )
+        ).send()
+        return
+
+    # Datei temporaer in DOCS_DIR speichern fuer den Workflow
+    dest_path = DOCS_DIR / filename
+    try:
+        shutil.copy(uploaded.path, dest_path)
+    except Exception as exc:
+        logger.error("Fehler beim Speichern des Lastenhefts: %s", exc)
+        await cl.Message(content=f"Fehler beim Speichern der Datei: {type(exc).__name__}").send()
+        return
+
+    # Extraktion starten
+    async with cl.Step(name="Schritt 2/3: Anforderungen werden extrahiert...") as step:
+        try:
+            from src.ingest import chunk_document, load_document
+            from src.extractor import extract_requirements
+
+            docs = await asyncio.to_thread(load_document, str(dest_path))
+            chunks = chunk_document(docs)
+            angebot_data = await asyncio.to_thread(extract_requirements, chunks)
+            step.output = f"Extraktion abgeschlossen: '{angebot_data.title}'"
+        except ValueError as exc:
+            await cl.Message(
+                content=f"Fehler bei der Extraktion: {exc}"
+            ).send()
+            return
+        except RuntimeError as exc:
+            logger.error("Extraktion fehlgeschlagen: %s", exc)
+            await cl.Message(
+                content=(
+                    "Die Anforderungsextraktion ist fehlgeschlagen.\n"
+                    "Bitte pruefen Sie die Verbindung und versuchen Sie es erneut.\n"
+                    f"_(Intern: {type(exc).__name__})_"
+                )
+            ).send()
+            return
+
+    # Verifikations-Schritt: Extrahierte Anforderungen anzeigen
+    reqs_text = "\n".join(f"  - {r}" for r in angebot_data.requirements)
+    specials_text = (
+        "\n".join(f"  - {s}" for s in angebot_data.special_requests)
+        if angebot_data.special_requests
+        else "  _(keine)_"
+    )
+
+    # Pending-State speichern fuer Bestaetigung
+    cl.user_session.set("pending_workflow", {
+        "file_path": str(dest_path),
+        "filename": filename,
+        "angebot_data": angebot_data,
+    })
+
+    await cl.Message(
+        content=(
+            f"**Erkannte Anforderungen aus '{filename}':**\n\n"
+            f"**Titel:** {angebot_data.title}\n\n"
+            f"**Zusammenfassung:** {angebot_data.summary}\n\n"
+            f"**Pflichtanforderungen:**\n{reqs_text}\n\n"
+            f"**Sonderwuensche:**\n{specials_text}\n\n"
+            "---\n"
+            "Stimmen die Anforderungen? Klicken Sie **Angebot generieren** um fortzufahren."
+        ),
+        actions=[
+            cl.Action(
+                name="confirm_workflow",
+                label="Angebot generieren",
+                payload={"action": "confirm"},
+            ),
+            cl.Action(
+                name="cancel_workflow",
+                label="Abbrechen",
+                payload={"action": "cancel"},
+            ),
+        ],
+    ).send()
+
+
+async def _run_workflow_generation(
+    file_path: str,
+    filename: str,
+    angebot_data,
+) -> None:
+    """Schritt 3/3: Angebotsentwurf generieren und als .docx liefern.
+
+    Args:
+        file_path: Pfad zum gespeicherten Lastenheft.
+        filename: Originalname des Lastenhefts.
+        angebot_data: Bereits extrahiertes AngebotData-Objekt.
+    """
+    async with cl.Step(name="Schritt 3/3: Angebotsentwurf wird generiert...") as step:
+        try:
+            from src.retrieval import search
+            from src.generator import generate_angebot
+            from src.output import write_docx
+            from src.workflow import OUTPUT_DIR
+
+            retrieved = await asyncio.to_thread(search, angebot_data.summary)
+            result = await asyncio.to_thread(generate_angebot, angebot_data, retrieved)
+
+            sections = {
+                "zusammenfassung": result["zusammenfassung"],
+                "technische_loesung": result["technische_loesung"],
+                "lieferumfang": result["lieferumfang"],
+                "offene_punkte": result["offene_punkte"],
+            }
+            output_filename = f"Angebotsentwurf_{Path(filename).stem}.docx"
+            docx_path = await asyncio.to_thread(
+                write_docx, sections, result["sources"], OUTPUT_DIR / output_filename
+            )
+            step.output = f"Entwurf erstellt: {output_filename}"
+        except Exception as exc:
+            logger.error("Workflow-Generierung fehlgeschlagen: %s", exc)
+            await cl.Message(
+                content=(
+                    "Fehler bei der Entwurfs-Generierung.\n"
+                    "Bitte pruefen Sie die Verbindung und versuchen Sie es erneut.\n"
+                    f"_(Intern: {type(exc).__name__})_"
+                )
+            ).send()
+            return
+
+    sources_note = ""
+    if result["sources"]:
+        src_list = ", ".join(result["sources"])
+        sources_note = f"\n\n**Verwendete Quellen:** {src_list}"
+
+    cost_cent = result["cost_eur"] * 100
+    cost_note = f"\n\n<sub>Generierungskosten: ~{cost_cent:.3f} Cent</sub>"
+
+    await _deliver_file(
+        path=docx_path,
+        display_name=output_filename,
+        message=(
+            f"**Angebotsentwurf fertig!**\n\n"
+            f"Ihr Entwurf basiert auf {len(retrieved)} historischen Abschnitten."
+            f"{sources_note}{cost_note}\n\n"
+            "_Bitte pruefen Sie den Entwurf sorgfaeltig vor dem Versand._"
+        ),
+    )

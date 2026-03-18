@@ -4,6 +4,8 @@
 
 Der PoC ist technisch funktionsfähig. Dieser Milestone bringt das Produkt auf Pilot-Reife: zuerst wird das technische Fundament stabilisiert (async-Fix, Singletons, korrekte Test-Mocks), dann die CI/CD-Pipeline abgesichert, dann die vom Pilotkunden erwarteten Chat-Features implementiert (Multi-Turn und Persistenz), und schließlich die Oberfläche auf professionellen Ersteindruck gebracht. Jede Phase liefert einen abgeschlossenen, verifizierbaren Zustand.
 
+**Milestone v2 (Workflow Engine):** Siehe `.planning/milestones/v2-workflow-engine/ROADMAP.md`
+
 ## Phases
 
 **Phase Numbering:**
@@ -14,8 +16,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Tech Debt Foundation** - Stabiles, concurrent-sicheres Fundament als Voraussetzung für alle weiteren Features (completed 2026-03-16)
 - [x] **Phase 2: CI/CD Stabilization** - Drei-Job-Pipeline (test → build → deploy) mit Pytest-Gate und Post-Deploy-Health-Check (completed 2026-03-17)
-- [ ] **Phase 3: Chat History and Multi-Turn Context** - Persistente Gesprächs-Sessions und Multi-Turn-Kontext als table-stakes Pilot-Features
-- [ ] **Phase 4: UI/UX Polish** - Professioneller Ersteindruck: Onboarding, Dokument-Inventar, deutsche Fehlermeldungen, prominente Quellenangaben
+- [x] **Phase 3: Chat History and Multi-Turn Context** - Persistente Gesprächs-Sessions und Multi-Turn-Kontext als table-stakes Pilot-Features (completed 2026-03-17)
+- [x] **Phase 4: Output Foundation** *(v2 Milestone)* - python-docx-Schreiber und Chainlit-Download-Mechanismus (completed 2026-03-17)
+- [x] **Phase 5: Extraction Engine** *(v2 Milestone)* - Strukturierte Lastenheft-Analyse via Claude → AngebotData (completed 2026-03-17)
+- [x] **Phase 6: Generation Engine** *(v2 Milestone)* - 4-Abschnitt-Angebotsentwurf auf Basis von AngebotData + RAG (completed 2026-03-17)
+- [x] **Phase 7: Workflow UI** *(v2 Milestone)* - Chainlit-Guided-Flow mit Human-in-the-Loop und .docx-Download (completed 2026-03-17)
 
 ## Phase Details
 
@@ -78,7 +83,10 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Tech Debt Foundation | 4/4 | Complete    | 2026-03-16 |
-| 2. CI/CD Stabilization | 1/1 | Complete    | 2026-03-17 |
-| 3. Chat History and Multi-Turn Context | 4/5 | In Progress|  |
-| 4. UI/UX Polish | 0/TBD | Not started | - |
+| 1. Tech Debt Foundation | 4/4 | Complete | 2026-03-16 |
+| 2. CI/CD Stabilization | 1/1 | Complete | 2026-03-17 |
+| 3. Chat History and Multi-Turn Context | 5/5 | Complete | 2026-03-17 |
+| 4. Output Foundation *(v2)* | 1/1 | Complete | 2026-03-17 |
+| 5. Extraction Engine *(v2)* | 1/1 | Complete | 2026-03-17 |
+| 6. Generation Engine *(v2)* | 1/1 | Complete | 2026-03-17 |
+| 7. Workflow UI *(v2)* | 1/1 | Complete | 2026-03-17 |
