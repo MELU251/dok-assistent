@@ -42,8 +42,12 @@ Plans:
 **Goal:** `hil_hinweis` ist im Chainlit-Chat sichtbar; toter Import `create_angebotsentwurf` ist bereinigt; doppelte Singletons konsolidiert
 **Requirements:** WORK-04, WORK-06
 **Gap Closure:** Schließt Audit-Gaps WORK-04, WORK-06 + Integration-Issues (dead code, dual singletons)
+**Plans:** 1 plan
 
 - [ ] Phase 9: Workflow Code Quality (0/1 plans)
+
+Plans:
+- [ ] 09-01-PLAN.md — hil_hinweis sichtbar in Chat, toter Import bereinigt, Singletons nach src/clients.py konsolidiert
 
 ## Progress
 
