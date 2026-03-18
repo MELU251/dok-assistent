@@ -170,3 +170,9 @@ jobs:
             echo "FEHLER: Container ist nach ${MAX_WAIT}s nicht healthy (Status: $STATUS)"
             exit 1
           ENDSSH
+
+      - name: Speicherplatz freigeben (alte Images, Cache)
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} bash << 'ENDSSH'
+            docker system prune -f
+          ENDSSH
