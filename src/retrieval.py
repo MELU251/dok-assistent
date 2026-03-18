@@ -19,7 +19,6 @@ def _get_embedder() -> OllamaEmbeddings:
     return OllamaEmbeddings(
         model=settings.ollama_embed_model,
         base_url=settings.ollama_base_url,
-        request_timeout=30.0,
     )
 
 
