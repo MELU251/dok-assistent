@@ -33,6 +33,9 @@ htmlcov/
 docs/
 !docs/.gitkeep
 
+# Generierte Angebotsentwürfe (lokal, nicht committen)
+output/*.docx
+
 # Chainlit
 .chainlit/
 chainlit.md

@@ -16,6 +16,9 @@ supabase>=2.10.0
 # Document loading
 unstructured[pdf,docx,xlsx]>=0.16.0
 
+# Word-Dokument-Export
+python-docx>=1.1.0
+
 # Token counting (approximation for chunk size; no OpenAI account needed)
 tiktoken>=0.8.0
 
