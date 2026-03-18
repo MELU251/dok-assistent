@@ -51,9 +51,9 @@ def get_data_layer() -> SQLAlchemyDataLayer:
         SQLAlchemyDataLayer-Instanz fuer Thread- und Nachrichten-Persistenz.
     """
     settings = get_settings()
-    # asyncpg kennt pgbouncer=true nicht – Parameter aus der URL entfernen
-    conninfo = settings.async_database_url
-    conninfo = conninfo.replace("?pgbouncer=true", "").replace("&pgbouncer=true", "")
+    # Direkte Verbindung (Port 5432) statt Transaction Pooler verwenden –
+    # PgBouncer im Transaction-Mode ist inkompatibel mit asyncpg Prepared Statements.
+    conninfo = settings.database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
     return SQLAlchemyDataLayer(
         conninfo=conninfo,
         ssl_require=True,
@@ -147,10 +147,8 @@ async def on_app_startup() -> None:
     import asyncpg
 
     settings = get_settings()
-    conninfo = settings.async_database_url
-    conninfo = conninfo.replace("?pgbouncer=true", "").replace("&pgbouncer=true", "")
-    # asyncpg erwartet postgresql:// – SQLAlchemy-Dialekt-Prefix entfernen
-    conninfo = conninfo.replace("postgresql+asyncpg://", "postgresql://")
+    # Direkte Verbindung (Port 5432) verwenden – asyncpg erwartet postgresql://
+    conninfo = settings.database_url
 
     ctx = _ssl.create_default_context()
     ctx.check_hostname = False
