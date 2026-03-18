@@ -86,7 +86,7 @@ def extract_requirements(chunks: list[Document]) -> AngebotData:
         client = Anthropic(api_key=settings.anthropic_api_key)
         response = client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=1024,
+            max_tokens=4096,
             system=_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": f"Lastenheft:\n{context}"}],
         )
