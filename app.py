@@ -52,8 +52,11 @@ def get_data_layer() -> SQLAlchemyDataLayer:
         SQLAlchemyDataLayer-Instanz fuer Thread- und Nachrichten-Persistenz.
     """
     settings = get_settings()
+    # asyncpg kennt pgbouncer=true nicht – Parameter aus der URL entfernen
+    conninfo = settings.async_database_url
+    conninfo = conninfo.replace("?pgbouncer=true", "").replace("&pgbouncer=true", "")
     return SQLAlchemyDataLayer(
-        conninfo=settings.async_database_url,
+        conninfo=conninfo,
         ssl_require=True,
         show_logger=False,
     )
