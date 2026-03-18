@@ -149,6 +149,8 @@ async def on_app_startup() -> None:
     settings = get_settings()
     conninfo = settings.async_database_url
     conninfo = conninfo.replace("?pgbouncer=true", "").replace("&pgbouncer=true", "")
+    # asyncpg erwartet postgresql:// – SQLAlchemy-Dialekt-Prefix entfernen
+    conninfo = conninfo.replace("postgresql+asyncpg://", "postgresql://")
 
     ctx = _ssl.create_default_context()
     ctx.check_hostname = False
