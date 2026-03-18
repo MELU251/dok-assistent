@@ -30,8 +30,13 @@ Schließt alle offenen Gaps aus dem v1.0-Audit (UI/UX-Phase die nie ausgeführt 
 **Goal:** Alle UI/UX-Requirements aus v1.0 sind verifiziert und vollständig implementiert — `/dokumente`-Befehl für mid-session Dokumenten-Liste, verifizierte Willkommensnachricht, vollständige deutsche Fehlerbehandlung, visuelle Quellenangaben
 **Requirements:** UI-01, UI-02, UI-03, UI-04
 **Gap Closure:** Schließt Audit-Gaps UI-01..04 (v1.0 UI-Phase die durch Workflow Engine ersetzt wurde)
+**Plans:** 2 plans
 
-- [ ] Phase 8: UI/UX Polish (0/1 plans)
+- [ ] Phase 8: UI/UX Polish (0/2 plans)
+
+Plans:
+- [ ] 08-01-PLAN.md — Testgeruest (xfail-Stubs) fuer UI-01..04
+- [ ] 08-02-PLAN.md — Implementierung: /dokumente, Willkommensnachricht, Fehlertext-Bereinigung, cl.Text-Quellenangaben
 
 #### Phase 9: Workflow Code Quality
 **Goal:** `hil_hinweis` ist im Chainlit-Chat sichtbar; toter Import `create_angebotsentwurf` ist bereinigt; doppelte Singletons konsolidiert
@@ -51,5 +56,5 @@ Schließt alle offenen Gaps aus dem v1.0-Audit (UI/UX-Phase die nie ausgeführt 
 | 5. Extraction Engine | v1.0 | 1/1 | Complete | 2026-03-17 |
 | 6. Generation Engine | v1.0 | 1/1 | Complete | 2026-03-17 |
 | 7. Workflow UI | v1.0 | 1/1 | Complete | 2026-03-17 |
-| 8. UI/UX Polish | v1.1 | 0/1 | Pending | — |
+| 8. UI/UX Polish | v1.1 | 0/2 | Pending | — |
 | 9. Workflow Code Quality | v1.1 | 0/1 | Pending | — |
