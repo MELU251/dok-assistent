@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 Pilot-Ready + Workflow Engine** — Phases 1–7 (shipped 2026-03-18)
-- 📋 **v1.1 TBD** — next milestone (planned)
+- 🔧 **v1.1 Gap Closure** — Phases 8–9 (in progress)
 
 ## Phases
 
@@ -22,9 +22,23 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 
 </details>
 
-### 📋 v1.1 (Next Milestone — TBD)
+### 🔧 v1.1 — Gap Closure
 
-_Run `/gsd:new-milestone` to define scope, requirements, and phases._
+Schließt alle offenen Gaps aus dem v1.0-Audit (UI/UX-Phase die nie ausgeführt wurde + Workflow-Code-Qualität).
+
+#### Phase 8: UI/UX Polish
+**Goal:** Alle UI/UX-Requirements aus v1.0 sind verifiziert und vollständig implementiert — `/dokumente`-Befehl für mid-session Dokumenten-Liste, verifizierte Willkommensnachricht, vollständige deutsche Fehlerbehandlung, visuelle Quellenangaben
+**Requirements:** UI-01, UI-02, UI-03, UI-04
+**Gap Closure:** Schließt Audit-Gaps UI-01..04 (v1.0 UI-Phase die durch Workflow Engine ersetzt wurde)
+
+- [ ] Phase 8: UI/UX Polish (0/1 plans)
+
+#### Phase 9: Workflow Code Quality
+**Goal:** `hil_hinweis` ist im Chainlit-Chat sichtbar; toter Import `create_angebotsentwurf` ist bereinigt; doppelte Singletons konsolidiert
+**Requirements:** WORK-04, WORK-06
+**Gap Closure:** Schließt Audit-Gaps WORK-04, WORK-06 + Integration-Issues (dead code, dual singletons)
+
+- [ ] Phase 9: Workflow Code Quality (0/1 plans)
 
 ## Progress
 
@@ -37,3 +51,5 @@ _Run `/gsd:new-milestone` to define scope, requirements, and phases._
 | 5. Extraction Engine | v1.0 | 1/1 | Complete | 2026-03-17 |
 | 6. Generation Engine | v1.0 | 1/1 | Complete | 2026-03-17 |
 | 7. Workflow UI | v1.0 | 1/1 | Complete | 2026-03-17 |
+| 8. UI/UX Polish | v1.1 | 0/1 | Pending | — |
+| 9. Workflow Code Quality | v1.1 | 0/1 | Pending | — |

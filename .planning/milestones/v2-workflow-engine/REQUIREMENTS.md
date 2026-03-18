@@ -51,8 +51,8 @@ Requirements für den Workflow-Engine-Milestone. Jedes Requirement mappt auf ein
 | WORK-05 | Phase 4: Output Foundation | Not started |
 | WORK-02 | Phase 5: Extraction Engine | Not started |
 | WORK-03 | Phase 6: Generation Engine | Not started |
-| WORK-04 | Phase 6: Generation Engine | Not started |
-| WORK-06 | Phase 7: Workflow UI | Not started |
+| WORK-04 | Phase 9: Workflow Code Quality (gap closure) | Pending |
+| WORK-06 | Phase 9: Workflow Code Quality (gap closure) | Pending |
 | WORK-07 | Phase 7: Workflow UI | Not started |
 
 **Coverage:**
