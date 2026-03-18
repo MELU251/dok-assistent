@@ -1,36 +1,35 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: planning
-stopped_at: "Checkpoint reached: 03-chat-history-and-multi-turn-context/03-05-PLAN.md Task 2 (human-verify)"
-last_updated: "2026-03-17T17:30:31.700Z"
-last_activity: 2026-03-12 — Roadmap created; ready to plan Phase 1
+milestone: v1.1
+milestone_name: TBD
+status: between_milestones
+stopped_at: null
+last_updated: "2026-03-18T00:00:00.000Z"
+last_activity: 2026-03-18 — v1.0 milestone completed and archived
 progress:
-  total_phases: 4
-  completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
-  percent: 25
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-12)
+See: .planning/PROJECT.md (updated 2026-03-18)
 
-**Core value:** Ein KMU-Mitarbeiter lädt ein Dokument hoch und bekommt sofort eine präzise Antwort mit Quellenangabe – ohne Begleitung, ohne technisches Vorwissen.
-**Current focus:** Phase 1 — Tech Debt Foundation
+**Core value:** Ein Mitarbeiter lädt ein Dokument hoch → präzise Antwort mit Quellenangabe. Oder: Lastenheft hochladen → Angebotsentwurf als .docx.
+**Current focus:** Between milestones — run `/gsd:new-milestone` to start v1.1
 
 ## Current Position
 
-Phase: 1 of 4 (Tech Debt Foundation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-12 — Roadmap created; ready to plan Phase 1
+Milestone v1.0 complete — 7 phases, 14 plans shipped.
+Status: Between milestones
+Last activity: 2026-03-18 — v1.0 archived, ready for next milestone
 
-Progress: [███░░░░░░░] 25%
+Progress: [████████████████████] 100%
 
 ## Performance Metrics
 
