@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.1
-milestone_name: TBD
-status: between_milestones
-stopped_at: null
-last_updated: "2026-03-18T00:00:00.000Z"
-last_activity: 2026-03-18 — v1.0 milestone completed and archived
+milestone_name: — Gap Closure
+status: Between milestones
+stopped_at: Completed 08-ui-ux-polish/08-01-PLAN.md
+last_updated: "2026-03-23T20:47:44.920Z"
+last_activity: 2026-03-18 — v1.0 archived, ready for next milestone
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 3
+  completed_plans: 1
+  percent: 100
 ---
 
 # Project State
@@ -59,6 +59,7 @@ Progress: [████████████████████] 100%
 | Phase 03-chat-history-and-multi-turn-context P02 | 4min | 2 tasks | 7 files |
 | Phase 03-chat-history-and-multi-turn-context P03 | 5min | 1 tasks | 2 files |
 | Phase 03-chat-history-and-multi-turn-context P05 | 15min | 1 tasks | 4 files |
+| Phase 08-ui-ux-polish P01 | 2min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,9 @@ Recent decisions affecting current work:
 - [Phase 03-chat-history-and-multi-turn-context]: Chainlit user_message steps use 'input' field not 'output' — on_chat_resume uses step.get('input', '') for user turns
 - [Phase 03-chat-history-and-multi-turn-context]: History windowing [-6:] stays in pipeline.answer(); _run_rag_flow passes full session history without slicing
 - [Phase 03-chat-history-and-multi-turn-context]: test_data_layer.py xfail kept — @cl.data_layer decorator means get_data_layer() takes no params; test signature mismatch left for future cleanup
+- [Phase 08-ui-ux-polish]: xfail(strict=True) used for all Wave 0 stubs in UI test scaffold — accidental pass causes test error, protecting against false greens
+- [Phase 08-ui-ux-polish]: UI-01 tests target file-format mention and input-field guidance (both absent in current _build_welcome_content)
+- [Phase 08-ui-ux-polish]: UI-04 tests assert cl.Text with display=inline is used — current implementation appends sources as inline markdown in cl.Message
 
 ### Pending Todos
 
@@ -111,6 +115,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T17:30:31.697Z
-Stopped at: Checkpoint reached: 03-chat-history-and-multi-turn-context/03-05-PLAN.md Task 2 (human-verify)
+Last session: 2026-03-23T20:47:44.917Z
+Stopped at: Completed 08-ui-ux-polish/08-01-PLAN.md
 Resume file: None
