@@ -1,8 +1,7 @@
 """Tests fuer UI/UX-Requirements UI-01 bis UI-04.
 
-Wave 0 — alle Tests sind als xfail(strict=True) markiert.
-Sie muessen im aktuellen Zustand fehlschlagen, um false Greens zu verhindern.
-Die Implementierung erfolgt in Phase 08 Plan 02.
+Wave 1 — UI-01 und UI-02 implementiert (Plan 02).
+UI-03 und UI-04 noch xfail(strict=True) bis ebenfalls implementiert.
 """
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -11,7 +10,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 class TestWelcomeMessage:
     """UI-01: Willkommensnachricht deckt alle drei Pflichtinhalte ab."""
 
-    @pytest.mark.xfail(strict=True, reason="Wave 0 — UI-01 noch nicht implementiert")
     def test_welcome_contains_upload_instructions(self):
         """_build_welcome_content() nennt unterstuetzte Dateiformate fuer den Upload."""
         import app
@@ -31,7 +29,6 @@ class TestWelcomeMessage:
             f"Gefunden: {formats_mentioned} Formate. Inhalt: {content[:400]}"
         )
 
-    @pytest.mark.xfail(strict=True, reason="Wave 0 — UI-01 noch nicht implementiert")
     def test_welcome_contains_question_instructions(self):
         """_build_welcome_content() erklaert explizit wie man Fragen in das Eingabefeld tippt."""
         import app
@@ -61,7 +58,6 @@ class TestWelcomeMessage:
             f"Willkommensnachricht zeigt nicht explizit auf das Eingabefeld: {content[:400]}"
         )
 
-    @pytest.mark.xfail(strict=True, reason="Wave 0 — UI-01 noch nicht implementiert")
     def test_welcome_contains_system_limits(self):
         """_build_welcome_content() informiert ueber Systemgrenzen (was das System NICHT kann)."""
         import app
@@ -93,7 +89,6 @@ class TestWelcomeMessage:
 class TestDokumenteCommand:
     """UI-02: /dokumente-Befehl liefert aktuelle Dokumentenliste."""
 
-    @pytest.mark.xfail(strict=True, reason="Wave 0 — UI-02 noch nicht implementiert")
     async def test_dokumente_command_lists_docs(self):
         """on_message('/dokumente') sendet Nachricht mit Dateinamen aus get_indexed_documents()."""
         import app
@@ -128,7 +123,6 @@ class TestDokumenteCommand:
             f"Dokumentliste enthaelt 'vertrag.docx' nicht: {combined}"
         )
 
-    @pytest.mark.xfail(strict=True, reason="Wave 0 — UI-02 noch nicht implementiert")
     async def test_dokumente_command_empty(self):
         """on_message('/dokumente') ohne Dokumente sendet Meldung mit 'keine' oder 'Keine'."""
         import app

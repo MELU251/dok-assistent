@@ -220,14 +220,21 @@ def _build_welcome_content() -> str:
 
     return (
         "## Willkommen beim Dokumenten-Assistenten\n\n"
-        "Ich beantworte Ihre Fragen direkt aus Ihren Unterlagen.\n\n"
+        "Ich beantworte Ihre Fragen direkt aus Ihren Unterlagen — "
+        "mit Quellenangabe (Dateiname + Seite).\n\n"
         f"{library_section}\n\n"
         "---\n"
-        "**Aktionen:**\n"
-        "- Klicken Sie **Dokument hochladen** um eine neue Datei zu indexieren\n"
-        "- Klicken Sie **Angebotsentwurf erstellen** um aus einem Lastenheft einen Entwurf zu erzeugen\n"
-        "- Stellen Sie einfach eine Frage um die Dokumente zu durchsuchen\n"
-        "- Tippen Sie `/loeschen [dateiname]` um ein Dokument zu entfernen"
+        "**So funktioniert es:**\n"
+        "- **Dokument hochladen:** Klicken Sie _Dokument hochladen_ — "
+        "unterstuetzt PDF, DOCX und XLSX (max. 50 MB)\n"
+        "- **Fragen stellen:** Tippen Sie Ihre Frage in das Eingabefeld — "
+        "ich durchsuche alle indexierten Dokumente\n"
+        "- **Wichtig:** Ich beantworte ausschliesslich Fragen auf Basis der hochgeladenen Dokumente. "
+        "Informationen, die nicht in Ihren Unterlagen stehen, kann ich nicht liefern.\n\n"
+        "**Befehle:**\n"
+        "- `/dokumente` — aktuelle Dokumentenliste anzeigen\n"
+        "- `/filter [dateiname]` — Suche auf ein bestimmtes Dokument eingrenzen\n"
+        "- `/loeschen [dateiname]` — Dokument vollstaendig entfernen\n"
     )
 
 
@@ -354,6 +361,17 @@ async def on_message(message: cl.Message) -> None:
             ).send()
             return
         await _run_delete_flow(parts[1].strip())
+        return
+
+    # Dokumentenliste: /dokumente
+    if text.lower().startswith("/dokumente"):
+        docs = get_indexed_documents()
+        if docs:
+            doc_list = "\n".join(f"  - {d}" for d in docs)
+            content = f"**Aktuell indexierte Dokumente ({len(docs)}):**\n{doc_list}"
+        else:
+            content = "_Keine Dokumente indexiert. Laden Sie ein Dokument hoch._"
+        await cl.Message(content=content).send()
         return
 
     # Regulaere RAG-Anfrage
