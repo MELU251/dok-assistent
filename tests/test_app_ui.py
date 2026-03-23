@@ -158,7 +158,6 @@ class TestDokumenteCommand:
 class TestGermanErrors:
     """UI-03: Alle Fehlerpfade senden deutschen Text ohne technischen Jargon."""
 
-    @pytest.mark.xfail(strict=True, reason="Wave 0 — UI-03 noch nicht implementiert")
     async def test_rag_flow_error_no_internal_type(self):
         """_run_rag_flow-Fehlerblock sendet keine rohen Exception-Klassennamen."""
         import app
@@ -198,7 +197,6 @@ class TestGermanErrors:
             f"Fehlermeldung enthaelt internen Marker '_Intern:': {combined}"
         )
 
-    @pytest.mark.xfail(strict=True, reason="Wave 0 — UI-03 noch nicht implementiert")
     async def test_upload_flow_error_no_internal_type(self):
         """_run_upload_flow embed_and_store-Fehlerblock sendet keine englischen Exception-Typen."""
         import app
@@ -245,7 +243,6 @@ class TestGermanErrors:
             f"Fehlermeldung enthaelt '_Intern:': {combined}"
         )
 
-    @pytest.mark.xfail(strict=True, reason="Wave 0 — UI-03 noch nicht implementiert")
     async def test_delete_flow_error_no_internal_type(self):
         """_run_delete_flow-Fehlerblock sendet keine Nachricht mit '_Intern:'."""
         import app
@@ -283,7 +280,6 @@ class TestGermanErrors:
             f"Fehlermeldung enthaelt 'RuntimeError': {combined}"
         )
 
-    @pytest.mark.xfail(strict=True, reason="Wave 0 — UI-03 noch nicht implementiert")
     async def test_workflow_generation_error_no_internal_type(self):
         """_run_workflow_generation-Fehlerblock sendet keine Nachricht mit '_Intern:'."""
         import app
@@ -321,7 +317,6 @@ class TestGermanErrors:
 class TestSourceCitations:
     """UI-04: Quellenangaben als cl.Text-Element mit display='inline'."""
 
-    @pytest.mark.xfail(strict=True, reason="Wave 0 — UI-04 noch nicht implementiert")
     async def test_rag_flow_uses_cl_text_element(self):
         """_run_rag_flow() mit vorhandenen Quellen ruft cl.Text auf (nicht nur cl.Message)."""
         import app
@@ -357,7 +352,6 @@ class TestSourceCitations:
             "cl.Text wurde nicht aufgerufen — Quellen werden nicht als Text-Element uebergeben"
         )
 
-    @pytest.mark.xfail(strict=True, reason="Wave 0 — UI-04 noch nicht implementiert")
     async def test_cl_text_display_inline(self):
         """cl.Text wird mit display='inline' aufgerufen."""
         import app

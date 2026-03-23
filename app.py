@@ -445,14 +445,14 @@ async def _run_upload_flow() -> None:
             stored = await asyncio.to_thread(embed_and_store, chunks, callback=progress)
             step.output = f"{stored} Vektoren in Supabase gespeichert"
         except RuntimeError as exc:
-            logger.error("embed_and_store failed: %s", exc)
+            logger.error("embed_and_store failed: %s (%s)", exc, type(exc).__name__)
             await cl.Message(
                 content=(
                     f"Fehler beim Erstellen der Embeddings fuer '{filename}'.\n\n"
                     "Moegliche Ursachen:\n"
                     "- Ollama VPS nicht erreichbar (Tailscale aktiv?)\n"
                     "- Supabase-Verbindung unterbrochen\n\n"
-                    f"Details (intern): {type(exc).__name__}"
+                    "Bitte pruefen Sie die Verbindung (Ollama/Supabase) und versuchen Sie es erneut."
                 )
             ).send()
             return
@@ -515,9 +515,12 @@ async def _run_delete_flow(filename: str) -> None:
             deleted_chunks = await asyncio.to_thread(delete_document, filename)
             step.output += f" | {deleted_chunks} Chunks aus Datenbank entfernt"
         except RuntimeError as exc:
-            logger.error("Delete DB failed for '%s': %s", filename, exc)
+            logger.error("Delete DB failed for '%s': %s (%s)", filename, exc, type(exc).__name__)
             await cl.Message(
-                content=f"Datei wurde geloescht, aber Datenbankfehler: {type(exc).__name__}"
+                content=(
+                    "Die Datei wurde entfernt, aber beim Bereinigen der Datenbank ist ein Fehler aufgetreten.\n"
+                    "Bitte versuchen Sie es erneut oder pruefen Sie die Supabase-Verbindung."
+                )
             ).send()
             return
 
@@ -559,12 +562,11 @@ async def _run_rag_flow(question: str) -> None:
                 answer, question, source_filter=source_filter, history=history
             )
         except Exception as exc:
-            logger.error("Pipeline error: %s", exc)
+            logger.error("Pipeline error: %s (%s)", exc, type(exc).__name__)
             await cl.Message(
                 content=(
                     "Bei der Verarbeitung ist ein Fehler aufgetreten.\n\n"
-                    "Bitte pruefen Sie die Verbindung und versuchen Sie es erneut.\n"
-                    f"_(Intern: {type(exc).__name__})_"
+                    "Bitte pruefen Sie die Verbindung und versuchen Sie es erneut."
                 )
             ).send()
             return
@@ -581,16 +583,23 @@ async def _run_rag_flow(question: str) -> None:
     history.append({"role": "assistant", "content": result["answer"]})
     cl.user_session.set("history", history)
 
-    sources_block = ""
+    elements = []
     if result["sources"]:
-        source_lines = "\n".join(f"- {s}" for s in result["sources"])
-        sources_block = f"\n\n---\n**Quellen:**\n{source_lines}"
+        sources_text = "\n".join(f"- {s}" for s in result["sources"])
+        elements.append(
+            cl.Text(
+                name="Quellen",
+                content=f"**Quellen:**\n{sources_text}",
+                display="inline",
+            )
+        )
 
     cost_cent = result["cost_eur"] * 100
     cost_note = f"\n\n<sub>Kosten dieser Anfrage: ~{cost_cent:.3f} Cent</sub>"
 
     await cl.Message(
-        content=result["answer"] + sources_block + cost_note
+        content=result["answer"] + cost_note,
+        elements=elements,
     ).send()
 
 
@@ -666,12 +675,11 @@ async def _run_workflow_flow() -> None:
             ).send()
             return
         except RuntimeError as exc:
-            logger.error("Extraktion fehlgeschlagen: %s", exc)
+            logger.error("Extraktion fehlgeschlagen: %s (%s)", exc, type(exc).__name__)
             await cl.Message(
                 content=(
                     "Die Anforderungsextraktion ist fehlgeschlagen.\n"
-                    "Bitte pruefen Sie die Verbindung und versuchen Sie es erneut.\n"
-                    f"_(Intern: {type(exc).__name__})_"
+                    "Bitte pruefen Sie die Verbindung und versuchen Sie es erneut."
                 )
             ).send()
             return
@@ -750,12 +758,11 @@ async def _run_workflow_generation(
             )
             step.output = f"Entwurf erstellt: {output_filename}"
         except Exception as exc:
-            logger.error("Workflow-Generierung fehlgeschlagen: %s", exc)
+            logger.error("Workflow-Generierung fehlgeschlagen: %s (%s)", exc, type(exc).__name__)
             await cl.Message(
                 content=(
                     "Fehler bei der Entwurfs-Generierung.\n"
-                    "Bitte pruefen Sie die Verbindung und versuchen Sie es erneut.\n"
-                    f"_(Intern: {type(exc).__name__})_"
+                    "Bitte pruefen Sie die Verbindung und versuchen Sie es erneut."
                 )
             ).send()
             return

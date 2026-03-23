@@ -61,6 +61,7 @@ class TestRagFlowAsync:
             patch("app.cl.user_session", mock_session),
             patch("app.cl.Step") as mock_step,
             patch("app.cl.Message") as mock_message,
+            patch("app.cl.Text", return_value=MagicMock()),
         ):
             mock_step.return_value.__aenter__ = AsyncMock(return_value=MagicMock())
             mock_step.return_value.__aexit__ = AsyncMock(return_value=False)
