@@ -80,14 +80,18 @@ def search(
         logger.error("Supabase RPC failed: %s", exc)
         raise RuntimeError(f"Suche fehlgeschlagen: {exc}") from exc
 
-    # Schritt 3: Zeilen in LangChain-Documents umwandeln (Metadaten aus Top-Level-Spalten)
+    # Schritt 3: Zeilen in LangChain-Documents umwandeln
+    # Die RPC-Funktion gibt Metadaten als JSONB-Objekt zurueck; Top-Level-Spalten als Fallback
     docs = [
         Document(
             page_content=row["content"],
             metadata={
-                "source": row.get("source", "unknown"),
-                "page": row.get("page", 0),
-                "tenant_id": row.get("tenant_id", "default"),
+                "source": (row.get("metadata") or {}).get("source")
+                          or row.get("source", "unknown"),
+                "page": (row.get("metadata") or {}).get("page")
+                        or row.get("page", 0),
+                "tenant_id": (row.get("metadata") or {}).get("tenant_id")
+                             or row.get("tenant_id", "default"),
             },
         )
         for row in (response.data or [])
