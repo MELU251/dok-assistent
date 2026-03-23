@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: — Gap Closure
 status: Between milestones
-stopped_at: Completed 08-ui-ux-polish/08-01-PLAN.md
-last_updated: "2026-03-23T20:47:44.920Z"
+stopped_at: "Completed 08-ui-ux-polish/08-02-PLAN.md (checkpoint: awaiting human-verify)"
+last_updated: "2026-03-23T20:54:24.154Z"
 last_activity: 2026-03-18 — v1.0 archived, ready for next milestone
 progress:
   total_phases: 2
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 100
 ---
 
@@ -60,6 +60,7 @@ Progress: [████████████████████] 100%
 | Phase 03-chat-history-and-multi-turn-context P03 | 5min | 1 tasks | 2 files |
 | Phase 03-chat-history-and-multi-turn-context P05 | 15min | 1 tasks | 4 files |
 | Phase 08-ui-ux-polish P01 | 2min | 1 tasks | 1 files |
+| Phase 08-ui-ux-polish P02 | 15min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,9 @@ Recent decisions affecting current work:
 - [Phase 08-ui-ux-polish]: xfail(strict=True) used for all Wave 0 stubs in UI test scaffold — accidental pass causes test error, protecting against false greens
 - [Phase 08-ui-ux-polish]: UI-01 tests target file-format mention and input-field guidance (both absent in current _build_welcome_content)
 - [Phase 08-ui-ux-polish]: UI-04 tests assert cl.Text with display=inline is used — current implementation appends sources as inline markdown in cl.Message
+- [Phase 08-ui-ux-polish]: cl.Text with display=inline used for source citations — sources_block string approach replaced
+- [Phase 08-ui-ux-polish]: All five error blocks retain type(exc).__name__ only in logger.error, not in user-facing cl.Message content
+- [Phase 08-ui-ux-polish]: When mocking _run_rag_flow in unit tests, patch cl.Text alongside cl.Message to avoid ChainlitContextException
 
 ### Pending Todos
 
@@ -115,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T20:47:44.917Z
-Stopped at: Completed 08-ui-ux-polish/08-01-PLAN.md
+Last session: 2026-03-23T20:54:24.151Z
+Stopped at: Completed 08-ui-ux-polish/08-02-PLAN.md (checkpoint: awaiting human-verify)
 Resume file: None
