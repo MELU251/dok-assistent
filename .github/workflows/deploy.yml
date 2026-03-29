@@ -39,7 +39,9 @@ jobs:
             libmagic1 poppler-utils tesseract-ocr
 
       - name: Python-Abhängigkeiten installieren
-        run: pip install -r requirements.txt
+        run: |
+          pip install uv
+          uv pip install --system -r requirements.txt
 
       - name: Tests ausführen
         run: pytest tests/ -v -m "not integration"
