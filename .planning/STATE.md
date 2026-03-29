@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: — Gap Closure
 status: Between milestones
-stopped_at: "Completed 08-ui-ux-polish/08-02-PLAN.md (checkpoint: awaiting human-verify)"
-last_updated: "2026-03-23T20:54:24.154Z"
+stopped_at: Completed 09-workflow-code-quality/09-01-PLAN.md
+last_updated: "2026-03-29T13:47:52.933Z"
 last_activity: 2026-03-18 — v1.0 archived, ready for next milestone
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 100
 ---
 
@@ -61,6 +61,7 @@ Progress: [████████████████████] 100%
 | Phase 03-chat-history-and-multi-turn-context P05 | 15min | 1 tasks | 4 files |
 | Phase 08-ui-ux-polish P01 | 2min | 1 tasks | 1 files |
 | Phase 08-ui-ux-polish P02 | 15min | 2 tasks | 3 files |
+| Phase 09-workflow-code-quality P01 | 22min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,9 @@ Recent decisions affecting current work:
 - [Phase 08-ui-ux-polish]: cl.Text with display=inline used for source citations — sources_block string approach replaced
 - [Phase 08-ui-ux-polish]: All five error blocks retain type(exc).__name__ only in logger.error, not in user-facing cl.Message content
 - [Phase 08-ui-ux-polish]: When mocking _run_rag_flow in unit tests, patch cl.Text alongside cl.Message to avoid ChainlitContextException
+- [Phase 09-workflow-code-quality]: Patch target stays at src.ingest.* / src.retrieval.* (not src.clients.*) for test_ingest.py and test_retrieval.py — direct imports bind name locally; patching origin module has no effect
+- [Phase 09-workflow-code-quality]: src/clients.py is canonical location for _get_embedder and _get_supabase_client singletons — ingest.py and retrieval.py now import from there
+- [Phase 09-workflow-code-quality]: asyncio.to_thread mock uses call-index side_effect (not fn.__name__) — local imports inside try blocks may be MagicMock objects with unreliable __name__
 
 ### Pending Todos
 
@@ -119,6 +123,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T20:54:24.151Z
-Stopped at: Completed 08-ui-ux-polish/08-02-PLAN.md (checkpoint: awaiting human-verify)
+Last session: 2026-03-29T13:47:52.929Z
+Stopped at: Completed 09-workflow-code-quality/09-01-PLAN.md
 Resume file: None
