@@ -785,3 +785,7 @@ async def _run_workflow_generation(
             "_Bitte pruefen Sie den Entwurf sorgfaeltig vor dem Versand._"
         ),
     )
+
+    hil_hinweis = result.get("hil_hinweis", "")
+    if hil_hinweis:
+        await cl.Message(content=f"**Hinweis:** {hil_hinweis}").send()
